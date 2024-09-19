@@ -1,0 +1,64 @@
+-- AFFECTING RUN PART --
+
+1. Réduction des compteurs et des spawns selon la vitesse de jeu
+
+-- OUTSIDE OF RUN PART --
+
+2. Affichage des scènes d'intro
+
+3. Refactoring des fonctions
+    * du joueur
+    * des ennemis
+    * de dessin du run
+    * d'update du run
+
+4. Faire des stim qui font passer la vitesse de jeu à 0.5 (augmente la réactivité du pilote) pendant,
+mais s'il en prend un deuxième il a 30% de chance de multiplier la vitesse par 2 ensuite, puis 65% de chances au 3e,
+et 100% au 4e.
+S'il reprend un stim alors que la vitesse de jeu est déjà multipilée par 2, le stim prend effet mais
+la vitesse est multipliée par 4 ensuite. Les prochains stims ne la ramènent qu'à 2 et le 4e n'a pas d'effet.
+
+5. Rewards :
+    * Level 1 : reach 100 points
+    * No more a newbbie : reach 200 points
+    * True defender : reach 300 points
+    * Unexpected pilot : reach 400 points
+    * Elit : reach 500 points
+    * Legend : reach 600 points or more
+
+    * Instinctive fire : Kill 1 ennemi the moment it spawns
+    * It was calculated : Kill 2 ennemies at the same time the moment they spawn
+
+    * The more the better : Kill 2 ennemies at the same time
+    * Number does not matter : Kill 5 ennemies at the same time
+    * Terror of space : Kill 8 ennemies or more at the same time
+
+    * Veteran habbits : Never active detector during a game that score 200 points or more
+    * Eagle Eyes : Never active detector during a game that score 300 points or more
+    * Trust your instinct : Never active detector during a game that score 400 points or more
+    * Jedi : Never active detector during a game that score 500 points or more
+
+    * Wrecker : Destroy a crusader by colliding with it and survive
+    * Asteroïd-man : Destroy a crusader by colliding with it and survive without activating shield
+    * Every means are good : Destroy a hunter by colliding with it and survive
+    
+    * You shall not pass : Die instead of leaving any ennemi reaching the base
+
+    * Good constitution : Take 2 stims without getting mad
+    * Unpoisonable blood : Take 3 stims without getting mad
+
+    * Boom Boom : Use only roquettes during a game that score 200 points or more
+
+    * No need your big technologie : Use only lasers during a game that score 200 points or more
+
+    * Perfect Shoot : Each roquettes hit an ennemi during a game that score 200 points or more
+    * Big sniper : Each roquettes hit an ennemi during a game that score 300 points or more
+    * Homing roquettes : Each roquettes hit an ennemi during a game that score 400 points or more
+    * Rocket friend : Each roquettes hit an ennemi during a game that score 500 points or more
+
+    * Perfect timing : Each lasers hit an ennemi during a game that score 200 points or more
+    * 100% accuracy : Each lasers hit an ennemi during a game that score 300 points or more
+    * Master of lasers : Each lasers hit an ennemi during a game that score 400 points or more
+    * Lucky Luke : Each lasers hit an ennemi during a game that score 500 points or more
+
+    6. Ajout d'un système de sauvegarde des scores et des récompenses
