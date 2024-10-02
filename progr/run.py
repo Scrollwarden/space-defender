@@ -229,10 +229,10 @@ def boss_tirs_creation(x, y, boss_tirs):
     """création d'un tir depuis le boss"""
     global table_points
 
-    tir_reccurence = 20
+    tir_reccurence = 4
     if table_points['score'] >= 399: # niveau 400
-        tir_reccurence = 30
-    if random.randint(0, tir_reccurence) == 0 and boss[2] == True:
+        tir_reccurence = 8
+    if random.randint(0, 100) <= tir_reccurence and boss[2] == True:
         boss_tirs.append([x-3, y+10])
         boss_tirs.append([x+3, y+10])
     return boss_tirs
@@ -412,6 +412,9 @@ def update():
     # mise a jour des positions des lazers et rockets
     lazer_liste = tirs_deplacement(lazer_liste, 4 * game_speed)
     rockets_list = tirs_deplacement(rockets_list, 3 * game_speed)
+    # mise à jour des positions des lazers du boss
+    boss_tirs = boss_tirs_creation(boss[0], boss[1], boss_tirs)
+    boss_tirs = boss_tirs_deplacement(boss_tirs)
 
     # création du bouclier
     shield = bouclier_activation(shield, pyxel.KEY_B)

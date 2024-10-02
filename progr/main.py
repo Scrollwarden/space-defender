@@ -24,7 +24,7 @@ from constant import SCREEN_HEIGHT, SCREEN_WIDTH
 pyxel.init(SCREEN_HEIGHT, SCREEN_WIDTH, title="Space Defender I")
 
 # =========================================================
-# == FUNCTIONS
+ # == FUNCTIONS
 # =========================================================
 
 #from intro import update, draw
