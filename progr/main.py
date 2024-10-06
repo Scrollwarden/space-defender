@@ -1,38 +1,18 @@
-#!/usr/bin/python3
+"""
+Space Defender
+==============
+Jeu de type space shooter
+Créé : 5/10/2024
+Auteur : Matthew batt
 
-'''
-permet de jouer à un jeu style arcade retro-gaming
-Auteurs : Matthew Batt
-création : 05/04/2024
-dernière modification : 17/06/2024
-'''
-
-# =========================================================
-# == IMPORTS
-# =========================================================
+Ce fichier permet de lancer le programme.
+"""
 
 import pyxel
-import random
-import time
+from run import Game
+from constants import SCREEN_HEIGHT, SCREEN_WIDTH
 
-# =========================================================
-# == GLOBALS
-# =========================================================
-
-from constant import SCREEN_HEIGHT, SCREEN_WIDTH
-# taille de la fenetre
-pyxel.init(SCREEN_HEIGHT, SCREEN_WIDTH, title="Space Defender I")
-
-# =========================================================
- # == FUNCTIONS
-# =========================================================
-
-#from intro import update, draw
-from run import update, draw
-
-# =========================================================
-# == RUN
-# =========================================================
-
-time.sleep(8)
-pyxel.run(update, draw)
+if __name__ == "__main__":
+    game = Game()
+    pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="Space Defender")
+    pyxel.run(game.update, game.draw)

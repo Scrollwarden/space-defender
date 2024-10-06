@@ -1,628 +1,349 @@
 """
-la boucle du jeu (lancé après l'intro)
-"""
+Le fichier qui gère le jeu
 
-# =========================================================
-# == IMPORTS
-# =========================================================
+CLASSES
+- Game (Controler)
+"""
 
 import pyxel
 import random
+from player import Player
+from enemies import Drone, Destroyer
+from projectile import Explosion, Projectile
+from background import Star
+from constants import *
 
-# =========================================================
-# == GLOBALS
-# =========================================================
+class Game:
+    '''
+    Controler : le contrôleur global du jeu
 
-from constant import *
+    ATTRIBUTS
+    - player : le joueur
+    - drones : la liste des drones
+    - destroyer : le destroyer
+    - stars : la liste des étoiles
+    - explosions : la liste des explosions
+    - table_points : le tableau des points
+    - game_speed : la vitesse du jeu
+    - vies : le nombre de vies du joueur
+    - base_life : la vie de la base
 
-# initialisation des table_points
-table_points = {'score':0, 'tués':0, 'passés':0, 'boss tués':0, 'boss passés':0, 'dégâts boss':0}
+    METHODS
+    - update
+    - draw
+    - update_drones
+    - update_destroyer
+    - update_stars
+    - check_all_collisions
+    - check_collision
+    - remove_deads
+    - draw_score
+    '''
+    def __init__(self):
+        self.player = Player()
+        self.drones = []
+        self.destroyer = Destroyer()
+        self.stars = []
+        self.explosions = []
+        self.table_points = {'score': 0, 'drones tués': 0, 'drones passés': 0, 'destroyer tués': 0, 'destroyer passés': 0, 'dégâts destroyer': 0}
+        self.game_speed = GAME_SPEED
+        self.vies = PLAYER_LIFE
+        self.base_life = BASE_LIFE
 
-# position initiale du vaisseau
-vaisseau_x = START_POSITION_X
-vaisseau_y = START_POSITION_Y
+        for y in range(1, 256):
+            self.stars.append(Star(random.randint(GAME_SCREEN_WIDTH_START, SCREEN_WIDTH), y))
 
-# vitesse du jeu
-game_speed = GAME_SPEED
+    def update(self):
+        """Met à jour tout le jeu"""
+        self.update_stars()
+        self.player.update(self.game_speed, self.vies, self.table_points['score'])
+        self.update_explosions()
+        self.update_drones()
+        self.update_destroyer()
+        self.check_all_collisions()
+        self.remove_deads()
+        if pyxel.btnr(pyxel.KEY_K):
+            self.vies = 0
+            self.check_collision(self.player, self.player)
+        if pyxel.btnr(pyxel.KEY_Q):
+            pyxel.quit()
 
-# initialisation des stimulants (working on)
-stim = [False, 0, 0] # activé ou non, nombre déjà pris, niveau d'overdose
-stim_effect = DURATION_STIMS
-
-# vies
-vies = PLAYER_LIFE
-
-# initialisation des tirs
-lazer_liste = []
-
-# initialisation des rockets
-rockets_list = []
-rocket_waiter = 0
-
-# initialisation des ondes de roquettes
-boom_list = []
-
-# initialisation du bouclier
-shield = [0, 0]
-shield_waiter = 0
-
-# initialisation des ennemis
-ennemis_liste = []
-
-# initialisation du boss
-# x, y, affichage, pv
-boss = [0, 0, False, BOSS_LIFE]
-boss_tirs = []
-
-# initialisation du détecteur
-detector = False
-detector_duration = MAX_DETECTOR_DURATION
-
-# animation de dégât
-crash_list = []
-
-# animations
-anim_reacteurs = [0, True]
-
-liste_etoiles = []
-for y in range(1, 256):
-    liste_etoiles.append([random.randint(0, 256), y])
-
-# =========================================================
-# == FUNCTIONS
-# =========================================================
-
-def vaisseau_deplacement(x, y):
-    """déplacement avec les touches de directions"""
-    if pyxel.btn(pyxel.KEY_RIGHT):
-        if (x < 247) :
-            x = x + PLAYER_SPEED * game_speed
-    if pyxel.btn(pyxel.KEY_LEFT):
-        if (x > 8) :
-            x = x - PLAYER_SPEED * game_speed
-    if pyxel.btn(pyxel.KEY_DOWN):
-        if (y < 247) :
-            y = y + PLAYER_SPEED * game_speed
-    if pyxel.btn(pyxel.KEY_UP):
-        if (y > 8) :
-            y = y - PLAYER_SPEED * game_speed
-    return x, y
-
-def tirs_creation(x, y, tirs_liste, key):
-    """création d'un tir avec la barre d'espace pour lazer et R pour une roquette"""
-    global rocket_waiter
-    # btnr pour eviter les tirs multiples
-    if pyxel.btnr(key):
-        if key == pyxel.KEY_R:
-            if rocket_waiter == 0:
-                tirs_liste.append([x-6, y-14])
-                if table_points['score'] > 199:
-                    tirs_liste.append([x-10, y])
-                rocket_waiter = ROCKET_RELOAD
+    def draw(self):
+        """Dessine l'écran"""
+        pyxel.cls(0)
+        pyxel.rect(0, 0, GAME_SCREEN_WIDTH_START, SCREEN_HEIGHT, 0)
+        pyxel.rect(0-2, 0, 2, SCREEN_HEIGHT, 13) # side bar. must be improved before release
+        for star in self.stars:
+            star.draw()
+        if self.vies > 0:
+            self.player.draw(self.table_points['score'])
+        for drone in self.drones:
+            drone.draw()
+        self.destroyer.draw()
+        self.destroyer.draw_projectiles()
+        for explosion in self.explosions:
+            explosion.draw()
+        if self.vies > 0 and self.base_life > 0 and self.table_points['score'] < SCORE_VICTOIRE:
+            self.draw_player_ui()
+            self.draw_score()
         else:
-            tirs_liste.append([x, y-10])
-            if table_points['score'] > 99:
-                tirs_liste.append([x+4, y+(random.randint(10, 15))])
-                if table_points['score'] > 299:
-                    tirs_liste.append([x+8, y+(random.randint(0, 5))])
- 
-    return tirs_liste
+            self.draw_game_over()
 
-def update_waiter(waiter):
-    if (pyxel.frame_count % 30 == 0) and waiter != 0:
-        waiter -= 1
-    return waiter
-
-def tirs_deplacement(tirs_liste, speed):
-    """déplacement des tirs vers le haut et suppression s'ils sortent du cadre"""
-    for tir in tirs_liste:
-        tir[1] -= speed
-        if  tir[1] < -8:
-            tirs_liste.remove(tir)
-    return tirs_liste
-
-def bouclier_activation(shield, key):
-    """Le joueur active un bouclier devant lui avec B"""
-    global shield_waiter
-
-    if pyxel.btnr(key) and shield_waiter == 0:
-        shield[0] = SHIELD_POWER
-        shield[1] = SHIELD_DURATION
-        shield_waiter = SHIELD_RELOAD
-    return shield
-
-#def take_stim(stim):
-#    """Le joueur s'ingecte un stimulant avec S et réduit la vitesse du jeu"""
-#    if pyxel.btnr(pyxel.KEY_S):
-#        if stim[1] <= 4:
-#            stim[0] = True
-#            stim[1] += 1
-#
-#    return stim
-
-#def change_speed_stim(stim, stim_effect, game_speed):
-#    """change la vitesse de jeu tant qu'un stim est actif"""
-#    game_speed = GAME_SPEED
-#    if stim[0] and stim_effect >= 0:
-#        game_speed = GAME_SPEED * 0.5
-#    elif stim_effect <= 0:
-#        stim[0] = False
-#        game_speed = end_stim(stim)
-#    
-#    return stim, game_speed
-
-#def end_stim(stim):
-#    """ramène le jeu a sa vitesse de base ou double la vitesse si le joueur a fait une overdose de stim"""
-#    game_speed = GAME_SPEED
-#    if stim[2] == 2:
-#        game_speed = GAME_SPEED * 2
-#    if stim[1] == 2:
-#        if random.randint(0, 1) <= 0.3:
-#            game_speed = GAME_SPEED * 2
-#            stim[2] = 1
-#    if stim[1] == 3:
-#        if random.randint(0, 1) <= 0.65:
-#            if stim[2]:
-#                game_speed = GAME_SPEED * 4
-#                stim[2] = 2
-#            else:
-#                game_speed = GAME_SPEED * 2
-#                stim[2] = 1
-#    if stim[1] == 4:
-#        if stim[2]:
-#            game_speed = GAME_SPEED * 4
-#            stim[2] = 2
-#        else:
-#            game_speed = GAME_SPEED * 2
-#            stim[2] = 1
-#    
-#    return game_speed
-
-def ennemis_creation(ennemis_liste, boss):
-    """création aléatoire des ennemis"""
-    if vies > 0 and (table_points['passés'] + table_points['dégâts boss']) < BASE_LIFE:
-        # un ennemi par 2 seconde
-        if (pyxel.frame_count % 60 == 0):
-            rand_x = random.randint(16, 233)
-            rand_y = random.randint(5, 25)
-            for _ in range(random.randint(1, 4)):
-                ennemis_liste.append([rand_x + random.randint(-15, 15), rand_y + random.randint(-15, 15)])
-            # un de plus si le niveau 100 est passé
-            if table_points['score'] > 99: 
-                ennemis_liste.append([random.randint(10, 247),random.randint(0, 5)])
-            
-            # boss
-            if boss[2] == False and random.randint(0, 15) == 15:
-                boss = [rand_x, rand_y-20, True, BOSS_LIFE]
-    return (ennemis_liste, boss)
-
-def ennemis_deplacement(ennemis_liste, boss):
-    """déplacement des ennemis vers le bas et suppression s'ils sortent du cadre"""
-    global table_points
-
-    if vies > 0 and (table_points['passés'] + table_points['dégâts boss']) < BASE_LIFE:
-        for ennemi in ennemis_liste:
-            ennemi[1] += 1 * game_speed
-            # plus rapide si le niveau 200 est passé
-            if table_points['score'] > 199:
-                ennemi[1] += 0.2
-            if table_points['score'] > 299: # niveau 300
-                ennemi[1] += 0.2
-
-            # retirer le vaisseau s'il arrive au bout
-            if  ennemi[1]>247:
-                ennemis_liste.remove(ennemi)
-                table_points['passés'] += 1
-                table_points['score'] -= 1
-        if boss[2] == True:
-            boss[1] += 1 * game_speed
-            if table_points['score'] > 299: # niveau 300
-                boss[1] += 0.2
-            if boss[1]>247:
-                boss[2] = False
-                table_points['score'] -= boss[3]
-                table_points['boss passés'] += 1
-                table_points['dégâts boss'] += boss[3]
-    return (ennemis_liste, boss)
-
-def boss_tirs_creation(x, y, boss_tirs):
-    """création d'un tir depuis le boss"""
-    global table_points
-
-    tir_reccurence = 4
-    if table_points['score'] >= 399: # niveau 400
-        tir_reccurence = 8
-    if random.randint(0, 100) <= tir_reccurence and boss[2] == True:
-        boss_tirs.append([x-3, y+10])
-        boss_tirs.append([x+3, y+10])
-    return boss_tirs
-
-def boss_tirs_deplacement(boss_tirs):
-    """déplacement des tirs vers le bas et suppression s'ils sortent du cadre"""
-    for tir in boss_tirs:
-        tir[1] += 3 * game_speed
-        if  tir[1] > 247:
-            boss_tirs.remove(tir)
-    return boss_tirs
+    def update_explosions(self):
+        """Met à jour les explosions"""
+        for explosion in self.explosions:
+            explosion.update()
     
-def vaisseau_suppression(vies):
-    """disparition du vaisseau et d'un ennemi si contact"""
-    global table_points, shield
+    def update_drones(self):
+        """Créé et met à jour les drones"""
+        # creation
+        if self.base_life > 0 and self.table_points['score'] < SCORE_VICTOIRE:
+            if (pyxel.frame_count % 60 == 0):
+                # point d'apparition d'un groupe
+                rand_x = random.randint(GAME_SCREEN_WIDTH_START+16, SCREEN_WIDTH-20)
+                rand_y = random.randint(-25, -5)
+                # apparition de chaque entité du groupe
+                for _ in range(random.randint(1, 4)):
+                    self.drones.append(Drone(rand_x + random.randint(-15, 15), rand_y + random.randint(-15, 15)))
+                if self.table_points['score'] >= 100:
+                    # niveau 1 : apparition d'un drone supplémentaire hors du groupe
+                    self.drones.append(Drone(random.randint(10, 247), random.randint(0, 5)))
 
-    for ennemi in ennemis_liste:
-        if ennemi[0] <= vaisseau_x+7 and ennemi[1] <= vaisseau_y and ennemi[0]+8 >= vaisseau_x-7 and ennemi[1]+8 >= vaisseau_y-8:
-            crash_list.append([ennemi[0], ennemi[1], 0, 8])
-            ennemis_liste.remove(ennemi)
-            table_points['tués'] += 1
-            table_points['score'] += 1
-            if shield[0] > 0:
-                crash_list.append([vaisseau_x, vaisseau_y, 0, 11])
-                shield[0] -= 1
-            else:
-                crash_list.append([vaisseau_x, vaisseau_y, 0, 8])
-                vies -= 1
-    if boss[2] == True:
-        for tirs in boss_tirs:
-            if tirs[0] <= vaisseau_x+7 and tirs[1] <= vaisseau_y and tirs[0]+1 >= vaisseau_x-7 and tirs[1]+3 >= vaisseau_y-8:
-                boss_tirs.remove(tirs)
-                if shield[0] > 0:
-                    crash_list.append([vaisseau_x, vaisseau_y, 0, 11])
-                    shield[0] -= 1
+        # mise à jour des positions
+        for drone in self.drones:
+            drone.update(self.game_speed)
+            if drone.y > 247:
+                self.drones.remove(drone)
+                if self.vies > 0 and self.base_life > 0 and self.table_points['score'] < SCORE_VICTOIRE:
+                    self.table_points['drones passés'] += 1
+                    self.table_points['score'] -= 1
+                    self.base_life -= 1
+
+    def update_destroyer(self):
+        """Créé et met à jour les destroyers."""
+        # creation
+        if self.base_life > 0 and self.table_points['score'] < SCORE_VICTOIRE \
+            and self.table_points['score'] >= SCORE_DESTROYER and not self.destroyer.active:
+            if (pyxel.frame_count % 60 == 0) and random.randint(0, 100) < DESTROYER_SPAWN_RATE:
+                self.destroyer.create()
+        
+        # mise à jour des positions
+        self.destroyer.update(self.game_speed, self.table_points['score'])
+        self.destroyer.update_projectiles(self.game_speed)
+        if self.destroyer.y > 247 and self.destroyer.active:
+            self.destroyer.disactive()
+            if self.vies > 0 and self.base_life > 0 and self.table_points['score'] < SCORE_VICTOIRE:
+                self.table_points['destroyer passés'] += 1
+                self.table_points['dégâts destroyer'] += self.destroyer.health
+                self.table_points['score'] -= self.destroyer.health
+                self.base_life -= self.destroyer.health
+
+    def update_stars(self):
+        """met à jour les étoiles en fond"""
+        # creation
+        if (pyxel.frame_count % 15 == 0):
+            for _ in range(random.randint(6, 10)):
+                self.stars.append(Star(random.randint(GAME_SCREEN_WIDTH_START, SCREEN_WIDTH), 0))
+
+        # deplacement
+        for star in self.stars:
+            star.update(self.game_speed)
+            if star.y > 256:
+                self.stars.remove(star)
+
+    def check_all_collisions(self):
+        """
+        Vérifie les collisions des astronefs entre-eux et avec les projectiles
+        """
+        player = self.player
+        destroyer = self.destroyer
+        lazers = self.player.lazer_liste
+        rockets = self.player.rockets_list
+        destlazers = self.destroyer.projectiles
+        explosions = [expl for expl in self.explosions if expl.etype == 'damage']
+
+        for drone in self.drones:
+            # si le joueur percute un drone
+            self.check_collision(player, drone)
+            for lazer in lazers:
+                # si un lazer percute un drone
+                self.check_collision(lazer, drone)
+            for rocket in rockets:
+                # si une roquette percute un drone
+                self.check_collision(rocket, drone)
+            for explosion in explosions:
+                # si une explosion percute un drone
+                self.check_collision(explosion, drone)
+
+        # si un lazer percute un destroyer
+        for lazer in lazers:
+            self.check_collision(lazer, destroyer)
+        # si une rocket percute un destroyer
+        for rocket in rockets:
+            self.check_collision(rocket, destroyer)
+        
+        for explosion in explosions:
+            # si le joueur percute une explosion
+            self.check_collision(player, explosion)
+            # si une explosion percute un destroyer
+            self.check_collision(explosion, destroyer)
+        
+        # si le joueur percute un destroyer
+        self.check_collision(player, destroyer)
+
+        # si le joueur percute un lazer du destroyer
+        for destlazer in destlazers:
+            self.check_collision(player, destlazer)
+    
+    def check_collision(self, entity1, entity2):
+        """
+        vérifie les collisions entre deux entités
+
+        entity1 (Player, Projectile.ptype=lazer, Projectile.ptype=rocket, Explosion.etype=damage) :
+        la première entité à vérifier\n
+        entity2 (Drone, Destroyer, Projectile.ptype=destlazer, Explosion.etype=damage) :
+        la seconde entité à vérifier
+
+        WARNING : if one of the argument do not contain one of the acceptable classes, the game will crash.
+        """
+        type1 = type(entity1)
+        type2 = type(entity2)
+        x1, y1 = entity1.x, entity1.y
+        x2, y2 = entity2.x, entity2.y
+        hb1_x, hb1_y, hb1_w, hb1_h = entity1.hitbox
+        hb2_x, hb2_y, hb2_w, hb2_h = entity2.hitbox
+        # hitbox
+        if x1 + hb1_x <= x2 + hb2_w and x1 + hb1_w >= x2 + hb2_x \
+        and y1 + hb1_y <= y2 + hb2_h and y1 + hb1_h >= y2 + hb2_y:
+            # drone
+            if type2 == Drone:
+                entity2.dead = True
+                self.explosions.append(Explosion(x2+(hb2_w//2), y2+(hb2_h//2)))
+            # destroyer
+            if type2 == Destroyer:
+                entity2.health -= 1
+                self.explosions.append(Explosion(x2, y2))
+                if entity2.health <= 0:
+                    entity2.dead = True
+            # lazer ou rocket
+            if type1 == Projectile and type2 != Explosion:
+                if entity1.ptype in ('lazer', 'rocket', 'destlazer'):
+                    entity1.target_hit = True
+            if type2 == Projectile and type1 != Explosion: # il s'agit forcément d'un destlazer
+                entity2.target_hit = True
+            # joueur
+            if type1 == Player:
+                if entity1.shield.active:
+                    self.explosions.append(Explosion(x1, y1, color=13))
+                    entity1.shield.power -= 1
                 else:
-                    crash_list.append([vaisseau_x, vaisseau_y, 0, 8])
-                    vies -= 1
-        if boss[0]-8 <= vaisseau_x+7 and boss[1] <= vaisseau_y and boss[0]+8 >= vaisseau_x-7 and boss[1]+4 >= vaisseau_y-8:
-            if shield[0] > 0:
-                crash_list.append([vaisseau_x, vaisseau_y, 0, 11])
-                shield[0] -= boss[3]
-            else:
-                crash_list.append([vaisseau_x, vaisseau_y, 0, 8])
-                vies -= boss[3]
-            crash_list.append([boss[0], boss[1], 0, 8])
-            boss[2] = False
-            table_points['boss tués'] += 1
-            table_points['score'] += BOSS_LIFE
-    return vies
+                    self.explosions.append(Explosion(x1, y1, radius=2))
+                    if self.base_life > 0: # invincibliité après la mort de la base
+                        self.vies -= 1
+                        if self.vies <= 0 and self.vies >= -1999: # belle explosion pour la mort
+                            if self.vies >= -1:
+                                self.explosions.append(Explosion(x1, y1, radius=5, etype='damage'))
+                            if self.vies <= -100:
+                                self.explosions.append(Explosion(x1, y1, radius=0, etype='damage'))
+                    
+            
 
-def ennemis_suppression():
-    """disparition d'un ennemi et d'un tir si contact"""
-    global table_points
-
-    if vies > 0 and (table_points['passés'] + table_points['dégâts boss']) < BASE_LIFE:
-        for ennemi in ennemis_liste:
-            for tir in lazer_liste:
-                if ennemi[0] <= tir[0]+1 and ennemi[0]+8 >= tir[0] and ennemi[1]+8 >= tir[1] and ennemi[1] <= tir[1]:
-                    crash_list.append([tir[0], tir[1], 0, 8])
-                    lazer_liste.remove(tir)
-                    crash_list.append([ennemi[0], ennemi[1], 0, 8])
-                    ennemis_liste.remove(ennemi)
-                    table_points['score'] += 1
-                    table_points['tués'] += 1
-            for zone in boom_list:
-                if ennemi[0]-5 <= zone[0]+1 and ennemi[0]+8+5 >= zone[0] and ennemi[1]+8 >= zone[1] and ennemi[1] <= zone[1]:
-                    crash_list.append([ennemi[0], ennemi[1], 0, 8])
-                    ennemis_liste.remove(ennemi)
-                    table_points['score'] += 1
-                    table_points['tués'] += 1
-            for tir in rockets_list:
-                if ennemi[0] <= tir[0]+1 and ennemi[0]+8 >= tir[0] and ennemi[1]+8 >= tir[1] and ennemi[1] <= tir[1]:
-                    boom_list.append([tir[0], tir[1], 0]) # le 3e numéro est la durée d'affichage qui fait 0 -> TAILLE_EXPLOSION
-                    rockets_list.remove(tir)
-                    # les ennemis ne prennent pas de dégâts, c'est l'explosion qui en donne
-
-def boss_suppression():
-    "update de la vie et disparition du boss et des tirs au contact"
-    global table_points
-
-    if vies > 0 and (table_points['passés'] + table_points['dégâts boss']) < BASE_LIFE:
-        if boss[2] == True:
-            for tir in lazer_liste:
-                if tir[0] <= boss[0]+5 and tir[1] <= boss[1] and tir[0] >= boss[0]-5 and tir[1] >= boss[1]-8:
-                    boss[3] -= 1
-                    crash_list.append([tir[0], tir[1], 0, 8])
-                    lazer_liste.remove(tir)
-            for zone in boom_list:
-                if zone[0] <= boss[0]+5 and zone[1] <= boss[1] and zone[0] >= boss[0]-5 and zone[1] >= boss[1]-8:
-                    crash_list.append([boss[0], boss[1], 0, 8])
-                    boss[3] -= 1
-            for tir in rockets_list:
-                if tir[0] <= boss[0]+5 and tir[1] <= boss[1] and tir[0] >= boss[0]-5 and tir[1] >= boss[1]-8:
-                    boom_list.append([tir[0], tir[1], 0]) # le 3e numéro est la durée d'affichage qui fait 0 -> TAILLE_EXPLOSION
-                    rockets_list.remove(tir)
-                    # les ennemis ne prennent pas de dégâts, c'est l'explosion qui en donne
-            if boss[3] <= 0:
-                crash_list.append([boss[0], boss[1], 0, 8])
-                boss[2] = False
-                table_points['score'] += BOSS_LIFE
-                table_points['boss tués'] += 1
-
-def remove_boom(boom_list):
-    """retire les explosions au bout d'un certain temps"""
-    if (pyxel.frame_count % 5 == 0):
-        for boom in boom_list:
-            if boom[2] >= TAILLE_EXPLOSION:
-                boom_list.remove(boom)
-            else:
-                boom[2] += 1
-    return boom_list
-
-def remove_crash(crash_list):
-    """retire les crash au bout d'un certain temps"""
-    if (pyxel.frame_count % 2 == 0):
-        for crash in crash_list:
-            if crash[2] >= 2:
-                crash_list.remove(crash)
-            else:
-                crash[2] += 1
-                crash[3] += 1
-
-def etoile_creation(liste_etoiles):
-    """affiche des étoiles aléatoirement sur la carte"""
-    if (pyxel.frame_count % 15 == 0):
-        for _ in range(random.randint(6, 10)):
-            liste_etoiles.append([random.randint(0, 256), 0])
-    return liste_etoiles
-
-def etoile_deplacement(liste_etoiles):
-    """déplace les étoiles affichées sur la carte"""
-    for star in liste_etoiles:
-        star[1] += 0.5 * game_speed
-        if  star[1]>256:
-            liste_etoiles.remove(star)
-    return liste_etoiles
-
-def toggle_detector(detector):
-    """D active/désactive une aide à la visée qui encadre les ennemis dans une certaine portée et les relient à une ligne s'ils sont face à un canon"""
-    if pyxel.btnr(pyxel.KEY_D):
-        detector = not(detector)
-    return detector
-
-def update_detector_power(detector_duration):
-    """Change la durée d'activation du détecteur"""
-    global detector
-    if (pyxel.frame_count % 30 == 0):
-        if detector and detector_duration > 0:
-            detector_duration -= 1
-            if detector_duration == 0:
-                detector = False
-        elif not(detector) and detector_duration < MAX_DETECTOR_DURATION:
-            detector_duration += 1
-    return detector_duration
-
-
-# =========================================================
-# == UPDATE
-# =========================================================
-
-def update():
-    """mise à jour des variables (30 fois par seconde)"""
-    global vaisseau_x, vaisseau_y, vies, game_speed
-    global detector, detector_duration, shield, stim
-    global shield_waiter, rocket_waiter, stim_effect
-    global lazer_liste, rockets_list, boom_list
-    global ennemis_liste, boss, boss_tirs
-    global anim_reacteurs, liste_etoiles, crash_list
-
-    # mise à jour de la position du vaisseau
-    vaisseau_x, vaisseau_y = vaisseau_deplacement(vaisseau_x, vaisseau_y)
-
-    # creation des lazers et des rockets en fonction de la position du vaisseau
-    lazer_liste = tirs_creation(vaisseau_x, vaisseau_y, lazer_liste, pyxel.KEY_SPACE)
-    rockets_list = tirs_creation(vaisseau_x, vaisseau_y, rockets_list, pyxel.KEY_R)
-    # mise a jour des positions des lazers et rockets
-    lazer_liste = tirs_deplacement(lazer_liste, 4 * game_speed)
-    rockets_list = tirs_deplacement(rockets_list, 3 * game_speed)
-    # mise à jour des positions des lazers du boss
-    boss_tirs = boss_tirs_creation(boss[0], boss[1], boss_tirs)
-    boss_tirs = boss_tirs_deplacement(boss_tirs)
-
-    # création du bouclier
-    shield = bouclier_activation(shield, pyxel.KEY_B)
-
-    # activation des stims (working on)
-    #stim = take_stim(stim)
-    #stim, game_speed = change_speed_stim(stim, stim_effect, game_speed)
-
-    # mise à jour des compteurs
-    rocket_waiter = update_waiter(rocket_waiter)
-    shield_waiter = update_waiter(shield_waiter)
-    stim_effect = update_waiter(stim_effect)
-    
-    # creation des ennemis
-    ennemis_liste, boss = ennemis_creation(ennemis_liste, boss)
-
-    # deplacement des ennemis
-    ennemis_liste, boss = ennemis_deplacement(ennemis_liste, boss)
-
-    # suppression des ennemis et tirs si contact
-    ennemis_suppression()
-    boss_suppression()
-
-    # suppression des booms si temps écoulé
-    remove_boom(boom_list)
-    remove_crash(crash_list)
-
-    # suppression du vaisseau et ennemi si contact
-    vies = vaisseau_suppression(vies)
-
-    # update detecteur
-    detector = toggle_detector(detector)
-    detector_duration = update_detector_power(detector_duration)
-
-    # animation des étoiles
-    liste_etoiles = etoile_creation(liste_etoiles)
-    liste_etoiles = etoile_deplacement(liste_etoiles)
-
-    # animation des réacteurs
-    if anim_reacteurs[1] == True:
-        anim_reacteurs[0] += 1
-        if anim_reacteurs[0] > 3:
-            anim_reacteurs[1] = False
-    else:
-        anim_reacteurs[0] -= 1
-        if anim_reacteurs[0] < 1:
-            anim_reacteurs[1] = True
-
-# =========================================================
-# == DRAW
-# =========================================================
-
-def draw_vaisseau():
-    """vaisseau du joueur"""
-    pyxel.rect(vaisseau_x-4, vaisseau_y+7, 3, 3+anim_reacteurs[0], 6) # réacteur de poupe babord
-    pyxel.rect(vaisseau_x+2, vaisseau_y+7, 3, 3+anim_reacteurs[0], 6) # réacteur de poupe tribord
-    pyxel.circ(vaisseau_x, vaisseau_y, 8, 7) # armature
-    pyxel.tri(vaisseau_x-4, vaisseau_y+6, vaisseau_x+3, vaisseau_y+6, vaisseau_x, vaisseau_y, 2) # détail
-    pyxel.rect(vaisseau_x, vaisseau_y-9, 1, 4, 13) # canon de proue
-    pyxel.rect(vaisseau_x-6, vaisseau_y-8, 4, 10, 13) # tube lance-roquettes
-    pyxel.rect(vaisseau_x-5, vaisseau_y-4, 1, 5, 10-rocket_waiter) # chargeur roquettes
-    # upgrade
-    if table_points['score'] > 99:
-        pyxel.rect(vaisseau_x+4, vaisseau_y-9, 1, 4, 13) # [upgrade](niv1) 2e canon de proue
-    if table_points['score'] > 199:
-        pyxel.rect(vaisseau_x-10, vaisseau_y-4, 4, 10, 13) # [upgrade](niv2) 2e tube lance-roquettes
-    if table_points['score'] > 299:
-        pyxel.rect(vaisseau_x+8, vaisseau_y-7, 1, 5, 13) # [upgrade](niv3) 3e canon de proue
-    # informations
-    if vies != PLAYER_LIFE:
-        pyxel.rect(vaisseau_x-((2*vies)//2), vaisseau_y+15, 2*vies, 1, 3) # barre de vie
-    if rocket_waiter != 0:
-        pyxel.text(vaisseau_x-14, vaisseau_y-4, str(rocket_waiter), 10) # compteur de chargement des roquettes
-    if detector_duration != MAX_DETECTOR_DURATION:
-        pyxel.rect(vaisseau_x-(detector_duration//2), vaisseau_y+17, detector_duration, 1, 11)
-    # bouclier
-    if shield[0] > 0 and shield[1] > 0:
-        pyxel.rect(vaisseau_x-(shield[0]//2), vaisseau_y+13, shield[0], 1, 12)
-        pyxel.dither(0.3)
-        pyxel.circb(vaisseau_x, vaisseau_y, 9, 12)
-        pyxel.circb(vaisseau_x, vaisseau_y, 8, 12)
-        pyxel.dither(1)
-    if shield_waiter > 0:
-        pyxel.text(vaisseau_x-3, vaisseau_y+15, str(shield_waiter), 12)
-
-def draw_detector(x, y, type_detected):
-    """afficahge des infos du detecteur"""
-    if detector and detector_duration > 0:
-        pyxel.text(4, 18, 'DETECTOR [ACTIVE]\nenergie : ' + str(detector_duration), 11)
-        if type_detected == 'ennemi':
-            if vaisseau_x - 60 <= x and vaisseau_x + 60 >= x:
-                color = 11
-                if (pyxel.frame_count % 2 == 0) and x-4 <= vaisseau_x and x+4 >= vaisseau_x:
-                    pyxel.rect(x+5, y, 5, 1, 14)
-                    pyxel.rect(x, y+5, 1, 5, 14)
-                    pyxel.rect(x-10, y, 5, 1, 14)
-                    pyxel.rect(x, y-10, 1, 5, 14)
-                    pyxel.text(4, 34, '> TARGET LOCKED', 14)
-                    color = 14
-                if rocket_waiter == 0 and x <= vaisseau_x and x >= vaisseau_x-10:
-                    pyxel.text(4, 40, '> ROCKET READY', 14)
-                    pyxel.rect(vaisseau_x-5, y, 1, vaisseau_y-y, 14)
-                    for i in range(1, 4):
-                        pyxel.circb(vaisseau_x-5, y-(i*2), 2*i, 14)
-                    if (pyxel.frame_count % 2 == 0):
-                        color = 14
-                # coin haut gauche
-                pyxel.rect(x-6, y-6, 3, 1, color)
-                pyxel.rect(x-6, y-5, 1, 2, color)
-                # coin haut droit
-                pyxel.rect(x+(6-3), y-6, 3, 1, color)
-                pyxel.rect(x+(6-1), y-5, 1, 2, color)
-                # coin bas gauche
-                pyxel.rect(x-6, y+6, 3, 1, color)
-                pyxel.rect(x-6, y+4, 1, 2, color)
-                # coin bas droit
-                pyxel.rect(x+(6-3), y+6, 3, 1, color)
-                pyxel.rect(x+(6-1), y+4, 1, 2, color)
-                for tir in lazer_liste:
-                    if (pyxel.frame_count % 2 == 0) and x-4 <= tir[0] and x+4 >= tir[0]:
-                        pyxel.circ(x+6, y-4, 2, 4)
-                for tir in rockets_list:
-                    if (pyxel.frame_count % 2 == 0) and x-4 <= tir[0] and x+4 >= tir[0]:
-                        pyxel.rect(x+6, y, 4, 4, 4)
-        elif type_detected == 'shoot':
-            if (pyxel.frame_count % 2 == 0) and x <= vaisseau_x+20 and x >= vaisseau_x-20:
-                pyxel.trib(x+2, y, x+7, y, x+5, y-4, 4)
-                pyxel.rect(x, y, 1, vaisseau_y-y, 4)
-                pyxel.text(vaisseau_x-24, vaisseau_y-80, '      /!\\     \n   WARNING    \nSHOOT INCOMING\n      /!\\     ', 4)
-
-def draw_gadget_info():
-    pyxel.text(180, 232, 'SPACE : Lazer', 8)
-    if shield_waiter == 0:
-        shield_ready = 'READY'
-    else:
-        shield_ready = '{}'.format(shield_waiter)
-    pyxel.text(180, 238, 'B : Shield ({})'.format(shield_ready), 12)
-    if rocket_waiter == 0:
-        rocket_ready = 'READY'
-    else:
-        rocket_ready = '{}'.format(rocket_waiter)
-    pyxel.text(180, 244, 'R : Rocket ({})'.format(rocket_ready), 10)
-    pyxel.text(180, 250, 'D : Detector ({} energie)'.format(detector_duration), 11)
-
-def draw():
-    """création des objets (30 fois par seconde)"""
-    # vide la fenetre
-    pyxel.cls(0)
-
-    # étoiles
-    for star in liste_etoiles:
-        pyxel.rect(star[0], star[1], 1, 1, 7)
-    
-    # si le vaisseau possede des vies le jeu continue
-    if vies > 0 and (table_points['passés'] + table_points['dégâts boss']) < BASE_LIFE:
-        # tirs
-        for lazer in lazer_liste:
-            pyxel.rect(lazer[0], lazer[1], 1, 4, 8)
-        # rocket
-        for rocket in rockets_list:
-            pyxel.rect(rocket[0], rocket[1], 4, 12, 10)
-        # vaisseau
-        draw_vaisseau()
-        # tirs du boss 
-        for tir in boss_tirs:
-            pyxel.rect(tir[0], tir[1], 1, 4, 6)
-            draw_detector(tir[0], tir[1], 'shoot')
-        # ennemis
-        for ennemi in ennemis_liste:
-            pyxel.rect(ennemi[0], ennemi[1], 8, 8, 13) # armature
-            pyxel.tri(ennemi[0]+1, ennemi[1]+8, ennemi[0]+6, ennemi[1]+8, ennemi[0]+4, ennemi[1]+4, 0) # trou arrière pour les ailes
-            pyxel.tri(ennemi[0]+1, ennemi[1], ennemi[0]+6, ennemi[1], ennemi[0]+4, ennemi[1]+4, 0) # trou avant pour les ailes
-            pyxel.rect(ennemi[0]+4, ennemi[1]-anim_reacteurs[0], 1, 2+anim_reacteurs[0 ], 10) # réacteur de poupe central
-            draw_detector(ennemi[0]+4, ennemi[1]+4, 'ennemi')
-        # boss
-        if boss[2] == True:
-            pyxel.rect(boss[0], boss[1]-4-anim_reacteurs[0], 2, 3+anim_reacteurs[0 ], 10) # réacteur de poupe central
-            pyxel.rect(boss[0]-6, boss[1], 12, 2, 13) # barre de soutien des ailes
-            pyxel.circ(boss[0], boss[1], 4, 13) # armature
-            pyxel.rect(boss[0]-6, boss[1]-4, 2, 8, 13) # aile babord
-            pyxel.rect(boss[0]+6, boss[1]-4, 2, 8, 13) # aile tribord
-            draw_detector(boss[0], boss[1], 'ennemi')
-            if boss[3] != BOSS_LIFE:
-                pyxel.rect(boss[0]-((1*boss[3])//2), boss[1]+10, 1*boss[3], 1, 3) # barre de vie
+    def remove_deads(self):
+        """
+        Supprime les astronefs morts, et change le score en fonction
+        Supprime les explosions finies
+        Supprime les rockets (il faut ajouter les explosions ici)
+        Les autres projectiles sont retirés dans les classes Player et Destroyer
+        """
+        # drones
+        for drone in self.drones:
+            if drone.dead:
+                self.drones.remove(drone)
+                if self.vies > 0 and self.base_life > 0 and self.table_points['score'] < SCORE_VICTOIRE:
+                    self.table_points['drones tués'] += 1
+                    self.table_points['score'] += 1
+        # destroyers
+        if self.destroyer.dead:
+            if self.vies > 0 and self.base_life > 0 and self.table_points['score'] < SCORE_VICTOIRE:
+                self.table_points['destroyer tués'] += 1
+                self.table_points['score'] += DESTROYER_LIFE
+            self.destroyer.disactive()
+        # rockets
+        for rocket in self.player.rockets_list:
+            if rocket.target_hit:
+                self.explosions.append(Explosion(rocket.x, rocket.y, radius=2, etype='damage'))
+                self.player.rockets_list.remove(rocket)
         # explosions
-        for boom in boom_list:
-            if boom[2] < TAILLE_EXPLOSION:
-                pyxel.circ(boom[0], boom[1], 2*boom[2], 10)
-            else:
-                pyxel.circb(boom[0], boom[1], 2*boom[2], 9)
-                pyxel.circ(boom[0], boom[1], boom[2], 10)
-        # crashs
-        for crash in crash_list:
-            pyxel.circb(crash[0], crash[1], crash[2], crash[3])
-        # info gadgets
-        draw_gadget_info()
-        # affichage du score
-        pyxel.text(2, 6, 'score : ' + str(table_points['score']), 7)
-        # affichage de la vie de la base
-        pyxel.rect(2, 2, 8*(BASE_LIFE - (table_points['passés'] + table_points['dégâts boss'])), 2, 11)
-        pyxel.text(8*(BASE_LIFE - (table_points['passés'] + table_points['dégâts boss'])) + 4, 1, str(BASE_LIFE - (table_points['passés'] + table_points['dégâts boss'])), 11)
-    # sinon: GAME OVER
-    else:
+        for explosion in self.explosions:
+            if explosion.step >= 5:
+                self.explosions.remove(explosion)
+
+    def draw_score(self):
+        """Dessine le score à l'écran et la vie de la base"""
+        pyxel.text(2, 6, 'score : ' + str(self.table_points['score']), 7)
+        pyxel.rect(2, 2, 8*self.base_life, 2, 11) # barre de vie de la base
+        pyxel.text(8*self.base_life + 4, 1, str(self.base_life), 11)
+
+        # répétitif. Doit tenir en boucle for
+        if SCORE_DESTROYER-25 <= self.table_points['score'] <= SCORE_DESTROYER-25+4:
+            pyxel.text((GAME_SCREEN_WIDTH//2)-19*2, 50, 'Shield unlocked !', 10)
+        if SCORE_SPIDRONE-25 <= self.table_points['score'] <= SCORE_SPIDRONE-25+4:
+            pyxel.text((GAME_SCREEN_WIDTH//2)-20*2, 50, 'Detector unlocked !', 10)
+        if 100 <= self.table_points['score'] <= 104:
+            pyxel.text((GAME_SCREEN_WIDTH//2)-19*2, 50, 'Rockets unlocked !', 10)
+        if 200 <= self.table_points['score'] <= 204:
+            pyxel.text((GAME_SCREEN_WIDTH//2)-22*2, 50, 'Double-shoot unlocked !', 10)
+        if 300 <= self.table_points['score'] <= 304:
+            pyxel.text((GAME_SCREEN_WIDTH//2)-22*2, 50, '2x rockets unlocked !', 10)
+        if 400 <= self.table_points['score'] <= 404:
+            pyxel.text((GAME_SCREEN_WIDTH//2)-22*2, 50, 'Triple-shoot unlocked !', 10)
+
+        if 600-8 <= self.table_points['score'] <= 600:
+            pyxel.text((SCREEN_WIDTH//2)-22*2, 50, 'LAST 50 POINTS.\n /!\\ CRUSADER INCOMMING /!\\', 14)
+
+    def draw_player_ui(self):
+        """Dessine l'interface du joueur autour du vaisseau"""
+        vies = self.vies
+        x = self.player.x
+        y = self.player.y
+        rocket_waiter1 = self.player.rocket_waiter1
+        rocket_waiter2 = self.player.rocket_waiter2
+        detector_dur = self.player.detector.duration
+
+        if vies != PLAYER_LIFE:
+            pyxel.rect(x+16, y-1, 2*vies, 1, 14) # barre de vie
+        if rocket_waiter1 != 0:
+            pyxel.text(x-14, y-2, str(rocket_waiter1), 10) # compteur de chargement du tube 1
+        if rocket_waiter2 != 0:
+            pyxel.text(x-14, y+2, str(rocket_waiter2), 10) # compteur de chargement du tube 2
+        if detector_dur != MAX_DETECTOR_DURATION:
+            pyxel.dither(0.5)
+            pyxel.rect(x+16, y+1, detector_dur, 1, 11)
+            pyxel.dither(1)
+        pyxel.text(0, SCREEN_HEIGHT-12, 'Canon (SPACE) : Always', 10)
+        if self.table_points['score'] >= 100:
+            state1, state2 = 'READY', ''
+            if rocket_waiter1 != 0:
+                state1 = rocket_waiter1
+            if self.table_points['score'] >= 300:
+                state2 = ' | READY'
+            if rocket_waiter2 != 0:
+                state2 = ' |' + str(rocket_waiter2)
+            pyxel.text(SCREEN_WIDTH//2, SCREEN_HEIGHT-12, f'Rocket (R) : {state1}{state2}', 10)
+    
+    def draw_game_over(self):
+        """Dessine le game over à l'écran"""
         # tableau de score
-        pyxel.text(2, 2, 'score : ' + str(table_points['score']), 7)
-        pyxel.text(2, 9, 'chasseurs tues : ' + str(table_points['tués']), 7)
-        pyxel.text(2, 16, 'destroyers tues : ' + str(table_points['boss tués']), 7)
-        pyxel.text(2, 23, 'chasseurs passes : ' + str(table_points['passés']), 7)
-        pyxel.text(2, 30, 'destroyers passes : ' + str(table_points['boss passés']) + ' (' + str(table_points['dégâts boss']) + ')', 7)
+        pyxel.text(64, 12, 'score : ' + str(self.table_points['score']), 7)
+        pyxel.text(64, 19, 'drones tues : ' + str(self.table_points['drones tués']), 7)
+        pyxel.text(64, 26, 'destroyers tues : ' + str(self.table_points['destroyer tués']), 7)
+        pyxel.text(64, 33, 'drones passes : ' + str(self.table_points['drones passés']), 7)
+        pyxel.text(64, 40, 'destroyers passes : ' + str(self.table_points['destroyer passés']) + ' (' + str(self.table_points['dégâts destroyer']) + ')', 7)
         # game over
-        pyxel.text((SCREEN_WIDTH//2)-20, SCREEN_HEIGHT//2, 'GAME OVER', 7)
+        pyxel.text((GAME_SCREEN_WIDTH//2)-9*2, SCREEN_HEIGHT//2, 'GAME OVER', 7)
+        if self.vies <= 0:
+            pyxel.text((GAME_SCREEN_WIDTH//2)-30*2, (SCREEN_HEIGHT//2)+10, 'Votre vaisseau a ete detruit.', 9)
+        if self.base_life <= 0:
+            pyxel.text((GAME_SCREEN_WIDTH//2)-26*2, (SCREEN_HEIGHT//2)+10, 'La base a ete dementelee.', 8)
+        if self.table_points['score'] >= SCORE_VICTOIRE:
+            pyxel.text((GAME_SCREEN_WIDTH//2)-40*2, (SCREEN_HEIGHT//2)+10, 'Vous avez survecu a cette attaque', 3)
