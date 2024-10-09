@@ -88,3 +88,42 @@ class Explosion:
         pyxel.circb(self.x, self.y, self.radius, self.color)
         if self.etype == 'damage':
             pyxel.circ(self.x, self.y, max(0, self.radius-3), self.color-1)
+
+
+class Lazerbeam:
+    '''
+    Entity : rayon lazer
+    Créé une file de lazers d'un type donné après un temps de chargement
+    '''
+    def __init__(self, ltype, x, y, direction):
+        self.x = x
+        self.y = y
+        self.ltype = ltype
+        self.direction = direction
+        self.state = 12 # temps de chargement
+        self.list_lazer = []
+
+    def update_loading(self):
+        """mise à jour chargement du rayon lazer"""
+        self.state -= 1
+        if self.state == 0:
+            self.fire()
+
+    def draw(self):
+        """apparition du rayonlazer à l'écran"""
+        self.draw_chargement()
+        for lazer in self.list_lazer:
+            lazer.draw()
+
+    def draw_chargement(self):
+        """animation de chargement du rayon"""
+        color = 11
+        if self.ltype == 'lazer':
+            color = 8
+        if self.state > 0:
+            pyxel.circb(self.x, self.y, self.state, color)
+
+    def fire(self):
+        """tir du lazer"""
+        for i in range(60):
+            self.list_lazer.append(Projectile(self.ltype, self.x, self.y+(self.direction*i*2), 24, self.direction))

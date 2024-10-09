@@ -65,11 +65,12 @@ class Shield:
             pyxel.dither(0.6)
             pyxel.circb(x, y, 12, 12)
             pyxel.dither(1)
-        
+    
+    def draw_shield_ui(self):
         state = 'READY'
         if self.waiter > 0:
            state = self.waiter
-        pyxel.text(12, SCREEN_HEIGHT-6, f'Bouclier (B) : {state}', 10)
+        pyxel.text(SCREEN_WIDTH//2, SCREEN_HEIGHT-12, f'Bouclier (B) : {state}', 10)
         
 
 class Detector:
@@ -98,6 +99,9 @@ class Detector:
                 self.duration += 2
 
     def draw(self):
+        pass
+
+    def draw_detector_ui(self):
         """
         Dessine les informations qu'affiche le détecteur.
         
@@ -109,4 +113,4 @@ class Detector:
         state = 'OUT'
         if self.duration < MAX_DETECTOR_DURATION:
            state = self.duration
-        pyxel.text(SCREEN_WIDTH//2+12, SCREEN_HEIGHT-6, f'Detector (D) : {state}', 10)
+        pyxel.text(SCREEN_WIDTH//2, SCREEN_HEIGHT-6, f'Detector (D) : {state}', 10)
