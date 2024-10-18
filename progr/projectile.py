@@ -7,6 +7,8 @@ CLASSES
 '''
 
 import pyxel
+from sounds import play_sound
+from constants import SOUND_LASERBEAM_FIRE, SOUND_ROCKET_FLIGHT
 
 class Projectile:
     '''
@@ -38,6 +40,8 @@ class Projectile:
 
     def update(self, game_speed):
         self.y += self.speed * self.direction * game_speed
+        # if self.ptype == 'rocket':
+        #     play_sound(SOUND_ROCKET_FLIGHT)
 
     def draw(self):
         if self.ptype == 'lazer':
@@ -125,5 +129,6 @@ class Lazerbeam:
 
     def fire(self):
         """tir du lazer"""
+        play_sound(SOUND_LASERBEAM_FIRE)
         for i in range(60):
             self.list_lazer.append(Projectile(self.ltype, self.x, self.y+(self.direction*i*2), 24, self.direction))

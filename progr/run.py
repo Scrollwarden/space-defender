@@ -8,8 +8,10 @@ CLASSES
 
 import pyxel
 import random
+from sounds import play_sound
+from intro import MainScreen, LaunchingScreen
 from player import Player
-from enemies import Drone, Destroyer, Cruiser
+from enemies import Drone, Destroyer, Cruiser, Frigat, Spidrone, Dreadnought
 from projectile import Explosion, Projectile
 from background import Star
 from constants import *
@@ -17,25 +19,59 @@ from constants import *
 class Game:
     '''
     controler : le controleur global du jeu
+
+    ATTRIBUTES
+    - score (dict) : le score du joueur
+    - niveau (Niveau) : le niveau en cours d'execution
+    - nb_levels (int) : le nombre de niveaux gagnés
+
+    METHODS
+    - update()
+    - draw()
     '''
     def __init__(self):
-        self.niveau = Niveau()
+        self.score = {
+            'score': 0,
+            'classe I tues': 0,
+            'classe II tues': 0,
+            'ennemis passes': 0,
+            'degats totaux': 0
+        }
+        self.niveau = LaunchingScreen()
+        self.nb_levels = 1
 
     def update(self):
+        """met à jour le jeu"""
         self.niveau.update()
+        if type(self.niveau) == LaunchingScreen:
+            if self.niveau.progress >= self.niveau.duration:
+                self.niveau = Niveau(self.score)
+        if type(self.niveau) == Niveau:
         # cheats
-        if pyxel.btnr(pyxel.KEY_K) and pyxel.btn(pyxel.KEY_SHIFT):
-            self.niveau.vies = 0
-            self.niveau.check_collision(self.niveau.player, self.niveau.player)
-        if pyxel.btnr(pyxel.KEY_L) and pyxel.btn(pyxel.KEY_SHIFT):
-            self.niveau.table_points['score'] += 100
+            if pyxel.btnr(pyxel.KEY_K) and pyxel.btn(pyxel.KEY_SHIFT):
+                self.niveau.vies = 0
+                self.niveau.check_collision(self.niveau.player, self.niveau.player)
+            if pyxel.btnr(pyxel.KEY_L) and pyxel.btn(pyxel.KEY_SHIFT):
+                self.score['score'] += 100
         # fonctionnel
-        if pyxel.btnr(pyxel.KEY_Q):
-            pyxel.quit()
-        if pyxel.btnr(pyxel.KEY_RETURN) and (self.niveau.vies <= 0 or self.niveau.table_points['score'] >= 650 or self.niveau.base_life <= 0):
-            self.niveau = Niveau()
+            # quit app
+            if pyxel.btnr(pyxel.KEY_Q):
+                pyxel.quit()
+            # mort - return only
+            if (self.niveau.vies <= 0 or self.niveau.table_points['score'] >= 650 or self.niveau.base_life <= 0) \
+                and pyxel.btnr(pyxel.KEY_BACKSPACE):
+                for key in self.score.keys():
+                    self.score[key] = 0
+                self.score['score'] = SCORE_VICTOIRE[self.nb_levels-1] +1
+                self.niveau = Niveau(self.score)
+            # win - continue or return
+            if self.niveau.table_points['score'] in SCORE_VICTOIRE and pyxel.btnr(pyxel.KEY_RETURN):
+                self.score['score'] += 1
+                self.nb_levels += 1
+                self.niveau = Niveau(self.score)
 
     def draw(self):
+        """dessine le jeu à l'écran"""
         self.niveau.draw()
 
 class Niveau:
@@ -49,19 +85,14 @@ class Niveau:
     - update
     - draw
     '''
-    def __init__(self):
+    def __init__(self, score):
         self.player = Player()
         self.drones = []
         self.destroyer = Destroyer()
         self.cruiser = Cruiser()
         self.stars = []
         self.explosions = []
-        self.table_points = {'score': 0,
-                             'drones tués': 0,
-                             'drones passés': 0,
-                             'destroyer tués': 0,
-                             'destroyer passés': 0, 'dégâts destroyer': 0,
-                             'croiseur tués': 0, 'dégâts croiseur': 0}
+        self.table_points = score
         self.game_speed = GAME_SPEED
         self.vies = PLAYER_LIFE
         self.base_life = BASE_LIFE
@@ -97,7 +128,7 @@ class Niveau:
         self.cruiser.draw_projectiles()
         for explosion in self.explosions:
             explosion.draw()
-        if self.vies > 0 and self.base_life > 0 and self.table_points['score'] < SCORE_VICTOIRE:
+        if self.vies > 0 and self.base_life > 0 and not self.table_points['score'] in SCORE_VICTOIRE:
             self.draw_player_ui()
             self.draw_score()
         else:
@@ -111,7 +142,7 @@ class Niveau:
     def update_drones(self):
         """Créé et met à jour les drones"""
         # creation
-        if self.base_life > 0 and self.table_points['score'] < SCORE_VICTOIRE:
+        if self.base_life > 0 and not self.table_points['score'] in SCORE_VICTOIRE:
             if (pyxel.frame_count % 60 == 0):
                 # point d'apparition d'un groupe
                 rand_x = random.randint(GAME_SCREEN_WIDTH_START+16, SCREEN_WIDTH-30)
@@ -129,17 +160,19 @@ class Niveau:
         # mise à jour des positions
         for drone in self.drones:
             drone.update(self.game_speed, self.table_points['score'])
-            if drone.y > 247:
+            if drone.y > SCREEN_HEIGHT+10:
                 self.drones.remove(drone)
-                if self.vies > 0 and self.base_life > 0 and self.table_points['score'] < SCORE_VICTOIRE:
-                    self.table_points['drones passés'] += 1
+                play_sound(SOUND_PLAYER_BASE_DESTROYED)
+                if self.vies > 0 and self.base_life > 0 and not self.table_points['score'] in SCORE_VICTOIRE:
+                    self.table_points['ennemis passes'] += 1
+                    self.table_points['degats totaux'] += 1
                     self.table_points['score'] -= 1
                     self.base_life -= 1
 
     def update_destroyer_cruiser(self):
         """Créé et met à jour les destroyers et les croiseurs."""
         # creation
-        if self.base_life > 0 and self.table_points['score'] < SCORE_VICTOIRE :
+        if self.base_life > 0 and not self.table_points['score'] in SCORE_VICTOIRE :
             if self.table_points['score'] >= SCORE_DESTROYER and not self.destroyer.active:
                 if (pyxel.frame_count % 60 == 0) and random.randint(0, 100) < DESTROYER_SPAWN_RATE:
                     self.destroyer.create()
@@ -151,11 +184,12 @@ class Niveau:
         for astronef in (self.destroyer, self.cruiser):
             astronef.update(self.game_speed, self.table_points['score'])
             astronef.update_projectiles(self.game_speed)
-            if astronef.y > 247 and astronef.active:
+            if astronef.y > SCREEN_HEIGHT+10 and astronef.active:
                 astronef.disactive()
-                if self.vies > 0 and self.base_life > 0 and self.table_points['score'] < SCORE_VICTOIRE:
-                    self.table_points['destroyer passés'] += 1
-                    self.table_points['dégâts destroyer'] += astronef.health
+                play_sound(SOUND_PLAYER_BASE_DESTROYED)
+                if self.vies > 0 and self.base_life > 0 and not self.table_points['score'] in SCORE_VICTOIRE:
+                    self.table_points['ennemis passes'] += 1
+                    self.table_points['degats totaux'] += astronef.health
                     self.table_points['score'] -= astronef.health
                     self.base_life -= astronef.health
 
@@ -259,6 +293,7 @@ class Niveau:
             # destroyer ou croiseur
             if type2 in (Destroyer, Cruiser):
                 entity2.health -= 1
+                play_sound(SOUND_ENNEMI_HIT)
                 self.explosions.append(Explosion(x2, y2))
                 if entity2.health <= 0:
                     entity2.dead = True
@@ -275,7 +310,8 @@ class Niveau:
                     entity1.shield.power -= 1
                 else:
                     self.explosions.append(Explosion(x1, y1, radius=2))
-                    if self.base_life > 0 or self.table_points['score'] >= SCORE_VICTOIRE: # invincibliité après la mort de la base ou la victoire
+                    #play_sound(SOUND_PLAYER_HIT)
+                    if self.base_life > 0 or not self.table_points['score'] in SCORE_VICTOIRE: # invincibliité après la mort de la base ou la victoire
                         self.vies -= 1
                         if self.vies <= 0 and self.vies >= -2000: # belle explosion pour la mort
                             self.explosions.append(Explosion(x1, y1, radius=2, etype='damage'))
@@ -293,25 +329,29 @@ class Niveau:
         for drone in self.drones:
             if drone.dead:
                 self.drones.remove(drone)
-                if self.vies > 0 and self.base_life > 0 and self.table_points['score'] < SCORE_VICTOIRE:
-                    self.table_points['drones tués'] += 1
+                play_sound(SOUND_ENNEMI_HIT)
+                if self.vies > 0 and self.base_life > 0 and not self.table_points['score'] in SCORE_VICTOIRE:
+                    self.table_points['classe I tues'] += 1
                     self.table_points['score'] += 1
         # destroyers
         if self.destroyer.dead:
-            if self.vies > 0 and self.base_life > 0 and self.table_points['score'] < SCORE_VICTOIRE:
-                self.table_points['destroyer tués'] += 1
+            if self.vies > 0 and self.base_life > 0 and not self.table_points['score'] in SCORE_VICTOIRE:
+                self.table_points['classe II tues'] += 1
                 self.table_points['score'] += DESTROYER_LIFE
+            play_sound(SOUND_ENNEMI_HIT)
             self.destroyer.disactive()
         # croiseur
         if self.cruiser.dead:
-            if self.vies > 0 and self.base_life > 0 and self.table_points['score'] < SCORE_VICTOIRE:
-                self.table_points['croiseur tués'] += 1
+            if self.vies > 0 and self.base_life > 0 and not self.table_points['score'] in SCORE_VICTOIRE:
+                self.table_points['classe II tues'] += 1
                 self.table_points['score'] += CRUISER_HEALTH
+            play_sound(SOUND_ENNEMI_HIT)
             self.cruiser.disactive()
         # rockets
         for rocket in self.player.rockets_list:
             if rocket.target_hit:
                 self.explosions.append(Explosion(rocket.x, rocket.y, radius=2, etype='damage'))
+                play_sound(SOUND_EXPLOSION_DESTROY)
                 self.player.rockets_list.remove(rocket)
         # explosions
         for explosion in self.explosions:
@@ -345,9 +385,10 @@ class Niveau:
         if SCORE_LAZERBEAM <= score <= SCORE_LAZERBEAM+4:
            message = 'Lazerbeam unlocked !'
         color = 10
-        if SCORE_VICTOIRE-60 <= score <= SCORE_VICTOIRE-50: # work only for level 1 
-            message = '\t\tLAST 50 POINTS.\n /!\\ CRUSADER INCOMMING /!\\'
-            color = 14
+        for score_victoire in SCORE_VICTOIRE:
+            if score_victoire-60 <= score <= score_victoire-50: # work only for level 1 
+                message = '/!\\ DREADNOUGHT INCOMMING /!\\'
+                color = 14
         
         pyxel.text((SCREEN_WIDTH//2)-len(message)*2, 50, message, color)
 
@@ -398,16 +439,16 @@ class Niveau:
         """Dessine le game over à l'écran"""
         # tableau de score
         pyxel.text(64, 12, 'score : ' + str(self.table_points['score']), 7)
-        pyxel.text(64, 19, 'drones tues : ' + str(self.table_points['drones tués']), 7)
-        pyxel.text(64, 26, 'destroyers tues : ' + str(self.table_points['destroyer tués']), 7)
-        pyxel.text(64, 33, 'drones passes : ' + str(self.table_points['drones passés']), 7)
-        pyxel.text(64, 40, 'destroyers passes : ' + str(self.table_points['destroyer passés']) + ' (' + str(self.table_points['dégâts destroyer']) + ')', 7)
+        pyxel.text(64, 19, 'Classe I tues : ' + str(self.table_points['classe I tues']), 7)
+        pyxel.text(64, 26, 'Classe II tues : ' + str(self.table_points['classe II tues']), 7)
+        pyxel.text(64, 40, 'Ennemis passes : ' + str(self.table_points['ennemis passes']) + ' (' + str(self.table_points['degats totaux']) + ')', 7)
         # game over
         pyxel.text((GAME_SCREEN_WIDTH//2)-9*2, SCREEN_HEIGHT//2, 'GAME OVER', 7)
         if self.vies <= 0:
             pyxel.text((GAME_SCREEN_WIDTH//2)-30*2, (SCREEN_HEIGHT//2)+10, 'Votre vaisseau a ete detruit.', 9)
         if self.base_life <= 0:
             pyxel.text((GAME_SCREEN_WIDTH//2)-26*2, (SCREEN_HEIGHT//2)+10, 'La base a ete dementelee.', 8)
-        if self.table_points['score'] >= SCORE_VICTOIRE:
+        if self.table_points['score'] in SCORE_VICTOIRE:
             pyxel.text((GAME_SCREEN_WIDTH//2)-40*2, (SCREEN_HEIGHT//2)+10, 'Vous avez survecu a cette attaque !', 3)
-        pyxel.text((GAME_SCREEN_WIDTH//2)-20*2, (SCREEN_HEIGHT//2)+40, '> RESTART (ENTER)', 3)
+            pyxel.text((GAME_SCREEN_WIDTH//2)-18*2, (SCREEN_HEIGHT//2)+30, '> CONTINUE (ENTER)',9)
+        pyxel.text((GAME_SCREEN_WIDTH//2)-21*2, (SCREEN_HEIGHT//2)+40, '> RESTART (BACKSPACE)', 3)

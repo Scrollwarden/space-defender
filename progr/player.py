@@ -6,6 +6,7 @@ CLASSES
 """
 
 import pyxel
+from sounds import play_sound
 from projectile import Projectile, Lazerbeam
 from gadgets import Shield, Detector
 from constants import *
@@ -117,6 +118,7 @@ class Player:
         """fait tirer le vaisseau, lazer, rockets, lazerbeam"""
         # lazer
         if pyxel.btnr(pyxel.KEY_SPACE):
+            play_sound(SOUND_SHOOT)
             self.lazer_liste.append(Projectile('lazer', self.x, self.y-10, 4, -1))
             if score >= SCORE_DOUBLE_TIR:
                 self.lazer_liste.append(Projectile('lazer', self.x+4, self.y-10, 4, -1))
@@ -124,6 +126,7 @@ class Player:
                 self.lazer_liste.append(Projectile('lazer', self.x+8, self.y-10, 4, -1))
         # rockets
         if pyxel.btnr(pyxel.KEY_R):
+            play_sound(SOUND_ROCKET_FIRE)
             if not self.rocket_waiter1 == 0 and self.rocket_waiter2 == 0 and score >= SCORE_DOUBLE_ROCKET:
                 self.rockets_list.append(Projectile('rocket', self.x-10, self.y-10, 3, -1))
                 self.rocket_waiter2 = ROCKET_RELOAD
@@ -133,6 +136,7 @@ class Player:
         # lazerbram
         if pyxel.btnr(pyxel.KEY_F) and score >= SCORE_LAZERBEAM:
             if self.lazerbeam_waiter == 0:
+                play_sound(SOUND_LASERBEAM_LOAD)
                 self.lazerbeam_list.append(Lazerbeam('lazer', self.x+10, self.y-5, -1))
                 self.lazerbeam_waiter = LAZERBEAM_RELOAD
 
@@ -174,3 +178,8 @@ class Player:
         
         if (pyxel.frame_count % 30 == 0) and self.lazerbeam_waiter > 0:
             self.lazerbeam_waiter -= 1
+
+        if pyxel.btnr(pyxel.KEY_SHIFT) and pyxel.btnr(pyxel.KEY_W): # cheat code  ?? dosen't work everytime ??
+            self.lazerbeam_waiter = 0
+            self.rocket_waiter1 = 0
+            self.rocket_waiter2 = 0

@@ -12,6 +12,7 @@ CLASSES
 """
 
 import pyxel
+from sounds import play_sound
 from projectile import Projectile, Lazerbeam
 from constants import *
 import random
@@ -151,10 +152,12 @@ class Destroyer:
     def fire(self):
         """génère un tir du destroyer"""
         fire_all = (random.randint(0, 6) == 6)
-        if fire_all or self.shoot_state == 0: # doesn't work
+        if fire_all or self.shoot_state == 0:
+            play_sound(SOUND_SHOOT)
             self.projectiles.append(Projectile('destlazer', self.x-3, self.y+10, 3, 1))
             self.shoot_state = 1
         elif fire_all or self.shoot_state == 1:
+            play_sound(SOUND_SHOOT)
             self.projectiles.append(Projectile('destlazer', self.x+3, self.y+10, 3, 1))
             self.shoot_state = 0
 
@@ -221,6 +224,7 @@ class Cruiser(Destroyer):
     def fire(self):
         """fait tirer un rayon lazer au croiseur"""
         self.lazerbeam_list.append(Lazerbeam('destlazer', self.x, self.y+10, 1))
+        play_sound(SOUND_LASERBEAM_LOAD)
         # if random.randint(0, 100) == 50:
         #    self.lazerbeam_list.append(Lazerbeam('destlazer', self.x, self.y, 1))
         # else:
@@ -254,3 +258,15 @@ class Cruiser(Destroyer):
         self.dead = False
         self.y = -10
         self.health = CRUISER_HEALTH
+
+
+class Spidrone(Drone):
+    pass
+
+
+class Frigat:
+    pass
+
+
+class Dreadnought:
+    pass
