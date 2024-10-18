@@ -1,0 +1,19 @@
+Issues in devlop banch
+
+> rocket sound always playing
+    - shouldn't play when pressin R while rocket is loading or unaviable
+
+> sounds loudness
+    - sounds are to loud compared to musics
+    - some sounds need to be reworked to avoid cacophony
+        * concern the 'explosion_short1.mp3'
+
+> can't go ever level 4
+    - tuple for levels doesn't allow going over level 4
+
+> restart at anytime
+    - game allow to press backspace and restart at anytime even if not dead
+
+> Win when -1 points
+    - when player reach -1 the winning screen is displayed.
+

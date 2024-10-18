@@ -37,7 +37,7 @@ GAME_SCREEN_WIDTH_START = SCREEN_WIDTH-GAME_SCREEN_WIDTH
 # images
 
 PATH_IMAGES = "../ress/img/"
-LOGO_STUDIO = PATH_IMAGES+"dicescreen_logo.png"
+LOGO_STUDIO = PATH_IMAGES+"logo_dicescreen_pyxel.pyxres"
 
 # colors
 

@@ -50,8 +50,8 @@ class LaunchingScreen:
     def draw(self):
         """dessine l'écran de lancement"""
         if self.step <= 20:
-            pyxel.rect(50, 50, SCREEN_WIDTH-100, SCREEN_HEIGHT-100, 13) # le logo, mais comment ?
-            pyxel.text(50+20, 50+20, LOGO_STUDIO, 9)
+            pyxel.load(LOGO_STUDIO)
+            pyxel.blt((SCREEN_WIDTH//2)-8*6, (SCREEN_HEIGHT//2)-8*3, 0, 0, 0, 8*12, 8*5)
         elif self.step <= 30:
             pyxel.rect(0, 0, SCREEN_WIDTH, (SCREEN_HEIGHT//20)*(self.step-19), 0)
             pyxel.rect(0, SCREEN_HEIGHT-((SCREEN_HEIGHT//20)*(self.step-19)), SCREEN_WIDTH, (SCREEN_HEIGHT//20)*(self.step-20), 0)
@@ -75,7 +75,7 @@ class LaunchingScreen:
             pyxel.text(self.step-50, 117+5*4, "| |    |       |       |       |   ||   | |    |       |  |", COLOR_TITLE_DEFENDER)
             pyxel.text(self.step-50, 117+5*5, "||     ||||    |       ||||    |    |   ||     ||||    |  |", COLOR_TITLE_DEFENDER)
             if self.step == 59:
-                pyxel.text(SCREEN_WIDTH//2-20*2, 200, '    Arcade 2024\nA game by Matthew', 7)
+                pyxel.text(SCREEN_WIDTH//2-20*2, 200, '    Arcade 2024\nNSI pyxel Contest', 7)
         elif 70 <=self.step <= 80:
             pyxel.rect(0, 0, SCREEN_WIDTH, (SCREEN_HEIGHT//20)*(self.step-69), 0)
             pyxel.rect(0, SCREEN_HEIGHT-((SCREEN_HEIGHT//20)*(self.step-69)), SCREEN_WIDTH, (SCREEN_HEIGHT//20)*(self.step-70), 0)
