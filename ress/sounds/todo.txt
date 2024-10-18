@@ -1,0 +1,6 @@
+shield_active
+shield_hit
+shield_disactive
+explosion_short2
+lazerbeam_charge1       LOOP DEGUELASSE     PAS ASSEZ FORT
+lazerbeam               PAS ASSEZ FORT
