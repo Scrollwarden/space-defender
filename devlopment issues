@@ -7,6 +7,7 @@ Issues in devlop banch
     - sounds are to loud compared to musics
     - some sounds need to be reworked to avoid cacophony
         * concern the 'explosion_short1.mp3'
+        * concern the 'lazerbeam_charge1.mp3'
 
 > can't go ever level 4
     - tuple for levels doesn't allow going over level 4

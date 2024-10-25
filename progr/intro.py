@@ -6,7 +6,7 @@ CLASSES
 """
 
 import pyxel
-from sounds import play_sound
+from sounds import Musicien
 from constants import *
 
 class MainScreen:
@@ -46,6 +46,7 @@ class LaunchingScreen:
         self.duration = 80
         self.progress = 0
         self.step = 0
+        self.play_the_sound = Musicien()
 
     def draw(self):
         """dessine l'écran de lancement"""
@@ -87,4 +88,4 @@ class LaunchingScreen:
             if self.step <= 80:
                 self.step += 1
         if self.progress == 20:
-            play_sound(MUSIC_MENU1)
+            self.play_the_sound.launching()
