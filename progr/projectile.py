@@ -7,8 +7,7 @@ CLASSES
 '''
 
 import pyxel
-from sounds import play_sound
-from constants import SOUND_LASERBEAM_FIRE, SOUND_ROCKET_FLIGHT
+from sounds import Musicien
 
 class Projectile:
     '''
@@ -106,6 +105,7 @@ class Lazerbeam:
         self.direction = direction
         self.state = 12 # temps de chargement
         self.list_lazer = []
+        self.play_the_sound = Musicien()
 
     def update_loading(self):
         """mise à jour chargement du rayon lazer"""
@@ -129,6 +129,6 @@ class Lazerbeam:
 
     def fire(self):
         """tir du lazer"""
-        play_sound(SOUND_LASERBEAM_FIRE)
+        self.play_the_sound.lazerbeam()
         for i in range(60):
             self.list_lazer.append(Projectile(self.ltype, self.x, self.y+(self.direction*i*2), 24, self.direction))

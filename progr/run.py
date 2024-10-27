@@ -8,7 +8,7 @@ CLASSES
 
 import pyxel
 import random
-from sounds import play_sound
+from sounds import Musicien
 from intro import MainScreen, LaunchingScreen
 from player import Player
 from enemies import Drone, Destroyer, Cruiser, Frigat, Spidrone, Dreadnought
@@ -39,6 +39,7 @@ class Game:
         }
         self.current_screen = LaunchingScreen()
         self.nb_levels = 0
+        self.musicien = Musicien()
 
     def update(self):
         """met à jour le jeu"""
@@ -119,6 +120,7 @@ class Niveau:
     '''
     def __init__(self, score, level):
         self.current_level = level+1
+        self.play_the_sound = Musicien()
         self.player = Player()
         self.drones = []
         self.destroyer = Destroyer()
@@ -203,9 +205,9 @@ class Niveau:
             drone.update(self.game_speed, self.table_points['score'])
             if drone.y > SCREEN_HEIGHT+10:
                 self.drones.remove(drone)
-                play_sound(SOUND_PLAYER_BASE_DESTROYED)
                 if self.vies > 0 and self.base_life > 0 \
-                and not self.table_points['score'] == (SCORE_VICTOIRE*self.current_level):
+                and not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
+                    self.play_the_sound.base_hit()
                     self.table_points['ennemis passes'] += 1
                     self.table_points['degats totaux'] += 1
                     self.table_points['score'] -= 1
@@ -232,7 +234,7 @@ class Niveau:
             astronef.update_projectiles(self.game_speed)
             if astronef.y > SCREEN_HEIGHT+10 and astronef.active:
                 astronef.disactive()
-                play_sound(SOUND_PLAYER_BASE_DESTROYED)
+                self.play_the_sound.base_hit()
                 if self.vies > 0 and self.base_life > 0 \
                 and not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
                     self.table_points['ennemis passes'] += 1
@@ -347,7 +349,7 @@ class Niveau:
             # destroyer ou croiseur
             if type2 in (Destroyer, Cruiser):
                 entity2.health -= 1
-                play_sound(SOUND_ENNEMI_HIT)
+                self.play_the_sound.ennemi_hit()
                 self.explosions.append(Explosion(x2, y2))
                 if entity2.health <= 0:
                     entity2.dead = True
@@ -383,7 +385,7 @@ class Niveau:
         for drone in self.drones:
             if drone.dead:
                 self.drones.remove(drone)
-                play_sound(SOUND_ENNEMI_HIT)
+                self.play_the_sound.ennemi_hit()
                 if self.vies > 0 and self.base_life > 0 \
                 and not self.table_points['score'] == (SCORE_VICTOIRE*self.current_level):
                     self.table_points['classe I tues'] += 1
@@ -394,7 +396,7 @@ class Niveau:
             and not self.table_points['score'] == (SCORE_VICTOIRE*self.current_level):
                 self.table_points['classe II tues'] += 1
                 self.table_points['score'] += DESTROYER_LIFE
-            play_sound(SOUND_ENNEMI_HIT)
+            self.play_the_sound.ennemi_hit()
             self.destroyer.disactive()
         # croiseur
         if self.cruiser.dead:
@@ -402,13 +404,13 @@ class Niveau:
             and not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
                 self.table_points['classe II tues'] += 1
                 self.table_points['score'] += CRUISER_HEALTH
-            play_sound(SOUND_ENNEMI_HIT)
+            self.play_the_sound.ennemi_hit()
             self.cruiser.disactive()
         # rockets
         for rocket in self.player.rockets_list:
             if rocket.target_hit:
                 self.explosions.append(Explosion(rocket.x, rocket.y, radius=2, etype='damage'))
-                play_sound(SOUND_EXPLOSION_DESTROY)
+                self.play_the_sound.explosion()
                 self.player.rockets_list.remove(rocket)
         # explosions
         for explosion in self.explosions:

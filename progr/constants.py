@@ -6,6 +6,9 @@ Les constantes nécessaires au fonctionnement du jeu
 
 # sounds
 
+SOUNDS_ALLOWED = True
+MAX_SOUNDS = 10
+
 PATH_SOUNDS = "../ress/sounds/"
 PATH_MUSICS = "../ress/musics/"
 
