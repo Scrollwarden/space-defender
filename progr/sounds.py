@@ -12,12 +12,12 @@ def play_sound(sound_file, priority=1, unique=False):
     """
     global G_nb_threads
 
-    if G_nb_threads < 20:
-        sound_thread = threading.Thread(target=__play_sound_whithout_thread, args=(sound_file,))
+    if G_nb_threads < 20 and False: # just stopped it because sounds need to be reworked
+        sound_thread = threading.Thread(target=_play_sound_whithout_thread, args=(sound_file,))
         sound_thread.start()
         G_nb_threads += 1
 
-def __play_sound_whithout_thread(sound_file):
+def _play_sound_whithout_thread(sound_file):
     """fonction inerne de play_sound"""
     global G_nb_threads
     try:

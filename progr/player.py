@@ -23,8 +23,11 @@ class Player:
     - lazer_liste : la liste des lasers tirés par le vaisseau
     - rockets_list : la liste des roquettes tirées par le vaisseau
     - rocket_waiter : le temps d'attente entre chaque tir de roquette
-    - anim_reacteurs : liste contenant l'état de l'animation des réacteurs et le sens de l'animation
     - hitbox : la hitbox du vaisseau (x, y, w, h) immuable
+
+    METHODS
+    - update(game_speed, vies, score)
+    - draw(score)
     '''
     def __init__(self):
         self.x = START_POSITION_X
@@ -43,16 +46,17 @@ class Player:
 
     def update(self, game_speed, vies, score):
         """met à jour tous les paramètres du vaisseau"""
-        self.move(game_speed)
-        self.fire(score)
+        self._move(game_speed)
+        self._fire(score)
         if score >= SCORE_DESTROYER-25:
             self.shield.update()
         if score >= SCORE_SPIDRONE-25:
             self.detector.update()
         self.update_projectiles(game_speed)
-        self.update_animation()
+        self._update_animation()
         
     def draw(self, score):
+        """dessine l'astronef"""
         # sous le corps de l'astronef
         if score >= SCORE_LAZERBEAM:
             pyxel.rect(self.x+8, self.y-2, 5, 8, 13) # support de pointe du canon lazer
@@ -100,7 +104,11 @@ class Player:
         for lazerbeam in self.lazerbeam_list:
             lazerbeam.draw()
 
-    def move(self, game_speed):
+    def _move(self, game_speed):
+        """
+        [methode interne de update]
+        Gère les interactions de déplacement du vaisseau
+        """
         booster = 1
         if pyxel.btnr(pyxel.KEY_EXCLAIM) and self.booster_waiter == 0:
             booster = 4
@@ -114,8 +122,11 @@ class Player:
         if pyxel.btn(pyxel.KEY_UP) and self.y > 0 - self.hitbox[1]:
             self.y -= PLAYER_SPEED * game_speed * booster
 
-    def fire(self, score):
-        """fait tirer le vaisseau, lazer, rockets, lazerbeam"""
+    def _fire(self, score):
+        """
+        [methode interne de update]
+        fait tirer le vaisseau, lazer, rockets, lazerbeam
+        """
         # lazer
         if pyxel.btnr(pyxel.KEY_SPACE):
             play_sound(SOUND_SHOOT)
@@ -141,6 +152,9 @@ class Player:
                 self.lazerbeam_waiter = LAZERBEAM_RELOAD
 
     def update_projectiles(self, game_speed):
+        """
+        mise à jour des projectiles tirés par l'astronef du joueur
+        """
         for lazer in self.lazer_liste:
             lazer.update(game_speed)
             if lazer.y < -8 or lazer.target_hit:
@@ -158,7 +172,7 @@ class Player:
             if lazerbeam.state == 0 and len(lazerbeam.list_lazer) == 0:
                 self.lazerbeam_list.remove(lazerbeam)
 
-    def update_animation(self):
+    def _update_animation(self):
         """Animation des réacteurs et timer des rockets"""
         self.anim_reacteurs[0]
         if self.anim_reacteurs[1]:

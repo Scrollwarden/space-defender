@@ -22,7 +22,7 @@ class Game:
 
     ATTRIBUTES
     - score (dict) : le score du joueur
-    - current_screen (LaunchingScreen ; MainScreen ; Niveau) : l'écran en cours d'execution
+    - current_screen (LaunchingScreen | MainScreen | Niveau) : l'écran en cours d'execution
     - nb_levels (int) : le nombre de niveaux déjà gagnés
 
     METHODS
@@ -44,43 +44,44 @@ class Game:
         """met à jour le jeu"""
         self.current_screen.update()
         if type(self.current_screen) == LaunchingScreen:
-            self._update_launching(self.current_screen)
+            self._update_launching()
         if type(self.current_screen) == Niveau:
-            niveau = self.current_screen
             # cheats
-            self._key_cheats(niveau)
+            self._key_cheats()
             # fonctionnel
             #   quit app
             if pyxel.btnr(pyxel.KEY_Q):
                 pyxel.quit()
-            self._key_reset(niveau)
-            self._key_continue(niveau)
+            #   others keys
+            self._key_reset()
+            self._key_continue()
 
-    def _update_launching(self, screen):
+    def _update_launching(self):
         """
-        [fonction interne de update]
+        [methode interne de update]
         Met à jour l'écran d'accueil
         """
         if self.current_screen.progress >= self.current_screen.duration:
-                self.current_screen = Niveau(self.score, self.nb_levels)
+            self.current_screen = Niveau(self.score, self.nb_levels+1) # le niveau actuel est le niveau 1
+            print('ON LAUNCHING KEY\nniveau', self.nb_levels, '\nscore', self.score['score'])
     
-    def _key_reset(self, niveau):
+    def _key_reset(self):
         """
-        [fonction interne de update]
+        [methode interne de update]
         Gère les interactions avec les écrans de fin pour recommencer le niveau
         """
         if (self.current_screen.vies <= 0 \
         or self.current_screen.table_points['score'] >= (SCORE_VICTOIRE * self.current_screen.current_level) \
         or self.current_screen.base_life <= 0) \
         and pyxel.btnr(pyxel.KEY_BACKSPACE): # marche aussi pour l'écran de victoire si volonté de reset
-            for key in self.score.keys():
+            for key in self.score.keys(): # on remet tout à zéro
                 self.score[key] = 0
             self.score['score'] = SCORE_VICTOIRE * self.nb_levels
             self.current_screen = Niveau(self.score, self.nb_levels)
 
-    def _key_continue(self, niveau):
+    def _key_continue(self):
         """
-        [fonction interne de update]
+        [methode interne de update]
         Gère les interactions avec les écrans de fin pour continuer au niveau suivant
         """
         if self.current_screen.table_points['score'] >= (SCORE_VICTOIRE * self.current_screen.current_level) \
@@ -88,9 +89,9 @@ class Game:
             self.nb_levels += 1
             self.current_screen = Niveau(self.score, self.nb_levels+1)
 
-    def _key_cheats(self, niveau):
+    def _key_cheats(self):
         """
-        [fonction interne de update]
+        [methode interne de update]
         Gère les interactions de type cheat durant le jeu
         """
         if pyxel.btn(pyxel.KEY_SHIFT):
@@ -110,6 +111,7 @@ class Niveau:
 
     ATTRIBUTS
     - current_level (int) : le niveau en cours
+    - table_point (dict) : le dictionnaire des scores marqués pendant la partie
 
     METHODS
     - update()
@@ -168,7 +170,7 @@ class Niveau:
 
     def _update_explosions(self):
         """
-        [fonction interne de update]
+        [methode interne de update]
         Met à jour les explosions
         """
         for explosion in self.explosions:
@@ -176,7 +178,7 @@ class Niveau:
     
     def _update_drones(self):
         """
-        [fonction interne de update]
+        [methode interne de update]
         Créé et met à jour les drones
         """
         # creation
@@ -211,7 +213,7 @@ class Niveau:
 
     def _update_destroyer_cruiser(self):
         """
-        [fonction interne de update]
+        [methode interne de update]
         Créé et met à jour les destroyers et les croiseurs.
         """
         # creation
@@ -240,7 +242,7 @@ class Niveau:
 
     def _update_stars(self):
         """
-        [fonction interne de update]
+        [methode interne de update]
         met à jour les étoiles en fond
         """
         # creation
@@ -256,7 +258,7 @@ class Niveau:
 
     def _check_all_collisions(self):
         """
-        [fonction interne de update]
+        [methode interne de update]
         Vérifie les collisions des astronefs entre-eux et avec les projectiles
         """
         player = self.player
@@ -312,12 +314,14 @@ class Niveau:
     
     def _check_collision(self, entity1, entity2):
         """
+        [methode interne de _check_all_collisions]
         [fonction interne de _check_all_collisions]
         vérifie les collisions entre deux entités
 
-        entity1 (Player, Projectile.ptype=lazer, Projectile.ptype=rocket, Explosion.etype=damage) :
-        la première entité à vérifier\n
-        entity2 (Drone, Destroyer, Projectile.ptype=destlazer, Explosion.etype=damage) :
+        INPUT
+            entity1 (Player | Projectile.ptype=lazer | Projectile.ptype=rocket | Explosion.etype=damage) :
+        la première entité à vérifier
+            entity2 (Drone | Destroyer | Projectile.ptype=destlazer | Explosion.etype=damage) :
         la seconde entité à vérifier
 
         WARNING : if one of the argument do not contain one of the acceptable classes, the game will crash.
@@ -367,11 +371,9 @@ class Niveau:
                         if self.vies <= 0 and self.vies >= -2000: # belle explosion pour la mort
                             self.explosions.append(Explosion(x1, y1, radius=2, etype='damage'))
                     
-            
-
     def _remove_deads(self):
         """
-        [fonction interne de update]
+        [methode interne de update]
         Supprime les astronefs morts, et change le score en fonction
         Supprime les explosions finies
         Supprime les rockets (il faut ajouter les explosions ici)
@@ -451,7 +453,7 @@ class Niveau:
 
     def _draw_player_ui(self):
         """
-        [fonction interne de draw]
+        [methode interne de draw]
         Dessine l'interface du joueur autour du vaisseau
         """
         vies = self.vies
@@ -497,7 +499,7 @@ class Niveau:
     
     def draw_game_over(self):
         """
-        [fonction interne de draw]
+        [methode interne de draw] # may move to Game
         Dessine le game over à l'écran
         """
         # tableau de score
