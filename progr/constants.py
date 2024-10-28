@@ -4,6 +4,10 @@ Les constantes nécessaires au fonctionnement du jeu
 
 # TECHNICAL
 
+from debugger import Debugger
+
+DEBUGGER = Debugger(active=True)
+
 # sounds
 
 SOUNDS_ALLOWED = True

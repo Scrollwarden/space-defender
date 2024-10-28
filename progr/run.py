@@ -16,6 +16,8 @@ from projectile import Explosion, Projectile
 from background import Star
 from constants import *
 
+DEBUGGER.set_filename('run.py')
+
 class Game:
     '''
     controler : le controleur global du jeu
@@ -52,6 +54,7 @@ class Game:
             # fonctionnel
             #   quit app
             if pyxel.btnr(pyxel.KEY_Q):
+                DEBUGGER.msg('ON QUIT\nGame was stopped on user commande Q.', note='WARN')
                 pyxel.quit()
             #   others keys
             self._key_reset()
@@ -64,7 +67,7 @@ class Game:
         """
         if self.current_screen.progress >= self.current_screen.duration:
             self.current_screen = Niveau(self.score, self.nb_levels+1) # le niveau actuel est le niveau 1
-            print('ON LAUNCHING KEY\nniveau', self.nb_levels, '\nscore', self.score['score'])
+            DEBUGGER.msg(f"ON LAUNCHING KEY\nniveau {self.nb_levels}\nscore {self.score['score']}")
     
     def _key_reset(self):
         """
@@ -97,10 +100,15 @@ class Game:
         """
         if pyxel.btn(pyxel.KEY_SHIFT):
             if pyxel.btnr(pyxel.KEY_K): # kill self
+                DEBUGGER.msg('ON SELF KILL\nPlayer should be destroyed.', note='CHEAT')
                 self.current_screen.vies = 0
                 self.current_screen._check_collision(self.current_screen.player, self.current_screen.player) # collision avec lui-même pour conserver l'animation
             if pyxel.btnr(pyxel.KEY_L): # level up
-                self.score['score'] += 100
+                if pyxel.btn(pyxel.KEY_C):
+                    DEBUGGER.msg('ON CHECKPOINT UP\nPlayer should gain 650 points and reach next Level Checkpoint.', note='CHEAT')
+                else:
+                    DEBUGGER.msg('ON LEVEL UP\nPlayer sould gain 100 points.', note='CHEAT')
+                    self.score['score'] += 100
 
     def draw(self):
         """dessine le jeu à l'écran"""
@@ -145,6 +153,9 @@ class Niveau:
         self._check_all_collisions()
         self._remove_deads()
 
+        if self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
+            DEBUGGER.msg(f'Game should stop : Player reached Level Checkpoint.', note='WARN')
+
     def draw(self):
         """Dessine l'écran"""
         pyxel.cls(0)
@@ -163,8 +174,9 @@ class Niveau:
         self.cruiser.draw_projectiles()
         for explosion in self.explosions:
             explosion.draw()
+
         if self.vies > 0 and self.base_life > 0 \
-        and not self.table_points['score'] == (SCORE_VICTOIRE*self.current_level):
+        and not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
             self._draw_player_ui()
             self._draw_score()
         else:
@@ -233,6 +245,7 @@ class Niveau:
             astronef.update(self.game_speed, self.table_points['score'])
             astronef.update_projectiles(self.game_speed)
             if astronef.y > SCREEN_HEIGHT+10 and astronef.active:
+                DEBUGGER.msg(f'ON {astronef} REACHING BOTTOM\nAstronef lifepoints are {astronef.health}. Base lifepoints are {self.base_life}.\nBase lifepoints will be updated to {self.base_life - astronef.health}', note='WARN')
                 astronef.disactive()
                 self.play_the_sound.base_hit()
                 if self.vies > 0 and self.base_life > 0 \
@@ -387,15 +400,21 @@ class Niveau:
                 self.drones.remove(drone)
                 self.play_the_sound.ennemi_hit()
                 if self.vies > 0 and self.base_life > 0 \
-                and not self.table_points['score'] == (SCORE_VICTOIRE*self.current_level):
+                and not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
                     self.table_points['classe I tues'] += 1
                     self.table_points['score'] += 1
+                    DEBUGGER.msg(f'ON DRONE KILLED\nat {pyxel.frame_count}\n> game over is False\none point given. Score is now {self.table_points["score"]}.')
+                else:
+                    DEBUGGER.msg(f'ON DRONE KILLED\nat {pyxel.frame_count}\n> game over is True\nno points given. Score is {self.table_points["score"]}.')
         # destroyers
         if self.destroyer.dead:
             if self.vies > 0 and self.base_life > 0 \
-            and not self.table_points['score'] == (SCORE_VICTOIRE*self.current_level):
+            and not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
                 self.table_points['classe II tues'] += 1
                 self.table_points['score'] += DESTROYER_LIFE
+                DEBUGGER.msg(f'ON DESTROYER KILLED\nat {pyxel.frame_count}\n> game over is False\n{DESTROYER_LIFE} points given. Score is now {self.table_points["score"]}.')
+            else:
+                DEBUGGER.msg(f'ON DESTROYER KILLED\nat {pyxel.frame_count}\n> game over is True\nno points given. Score is {self.table_points["score"]}.')
             self.play_the_sound.ennemi_hit()
             self.destroyer.disactive()
         # croiseur
@@ -404,6 +423,9 @@ class Niveau:
             and not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
                 self.table_points['classe II tues'] += 1
                 self.table_points['score'] += CRUISER_HEALTH
+                DEBUGGER.msg(f'ON CRUISER KILLED\nat {pyxel.frame_count}\n> game over is False\n{CRUISER_HEALTH} points given. Score is now {self.table_points["score"]}.')
+            else:
+                DEBUGGER.msg(f'ON CRUISER KILLED\nat {pyxel.frame_count}\n> game over is True\nno points given. Score is {self.table_points["score"]}.')
             self.play_the_sound.ennemi_hit()
             self.cruiser.disactive()
         # rockets
@@ -515,7 +537,7 @@ class Niveau:
             pyxel.text((GAME_SCREEN_WIDTH//2)-30*2, (SCREEN_HEIGHT//2)+10, 'Votre vaisseau a ete detruit.', 9)
         if self.base_life <= 0:
             pyxel.text((GAME_SCREEN_WIDTH//2)-26*2, (SCREEN_HEIGHT//2)+10, 'La base a ete dementelee.', 8)
-        if self.table_points['score'] == (SCORE_VICTOIRE*self.current_level):
+        if self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
             pyxel.text((GAME_SCREEN_WIDTH//2)-40*2, (SCREEN_HEIGHT//2)+10, 'Vous avez survecu a cette attaque !', 3)
             pyxel.text((GAME_SCREEN_WIDTH//2)-18*2, (SCREEN_HEIGHT//2)+30, '> CONTINUE (ENTER)',9)
         pyxel.text((GAME_SCREEN_WIDTH//2)-21*2, (SCREEN_HEIGHT//2)+40, '> RESTART (BACKSPACE)', 3)
