@@ -40,6 +40,9 @@ class Drone:
         self.anim_reacteurs = [0, True]
         self.hitbox = (0, 0, 8, 8) # x, x+w, y, y+h
 
+    def __str__(self):
+        return f"Drone (x{self.x}, y{self.y})"
+
     def update(self, game_speed, score):
         """Met à jour le Drone"""
         self.y += 1 * game_speed
@@ -103,6 +106,9 @@ class Destroyer:
         self.hitbox = (-6, -4, 14, 8) # x, y, w, h
         self.anim_reacteurs = [0, True]
         self.play_the_sound = Musicien()
+
+    def __str__(self):
+        return f"[{self.health}pv]Destroyer (x{self.x}, y{self.y})"
 
     def create(self):
         self.x = random.randint(GAME_SCREEN_WIDTH_START+16, SCREEN_WIDTH-16)
@@ -197,6 +203,9 @@ class Cruiser(Destroyer):
         self.health = CRUISER_HEALTH
         self.hitbox = (-6, -4, 14, 8) # x, y, w, h
         self.lazerbeam_list = []
+    
+    def __str__(self):
+        return f"[{self.health}pv]Destroyer (x{self.x}, y{self.y})"
 
     def update(self, game_speed, score):
         """met à jour la position du croiseur et le fait tirer aléatoirement"""

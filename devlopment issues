@@ -9,12 +9,4 @@ Issues in devlop banch
         * concern the 'explosion_short1.mp3'
         * concern the 'lazerbeam_charge1.mp3'
 
-> can't go ever level 4
-    - tuple for levels doesn't allow going over level 4
-
-> restart at anytime
-    - game allow to press backspace and restart at anytime even if not dead
-
-> Win when -1 points
-    - when player reach -1 the winning screen is displayed.
 
