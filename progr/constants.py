@@ -85,8 +85,8 @@ SCORE_VICTOIRE = 650 # multiplié par le niveau en cours
 BASE_LIFE = 30
 
 PLAYER_LIFE = 6
-PLAYER_SPEED = 2
-TARGETING_SLOWING = 0.5 # la vitesse du joueur réduit lorsqu'il vise avec le canon normal
+PLAYER_SPEED = 2 +0.5
+TARGETING_SLOWING = 0.5 +0.5 # la vitesse du joueur réduit lorsqu'il vise avec le canon normal
 
 DESTROYER_LIFE = 8
 DESTROYER_FIRE_RATE = 20

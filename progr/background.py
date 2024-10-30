@@ -1,6 +1,6 @@
 import pyxel
 import random
-from constants import GAME_SCREEN_WIDTH_START, SCREEN_WIDTH
+from constants import SCREEN_WIDTH
 
 class _Star:
     '''
@@ -33,7 +33,8 @@ class StarField:
     def _generate_stars_base(self):
         """generate first stars taht fill all the background"""
         for y in range(1, 256):
-            self.stars.append(_Star(random.randint(GAME_SCREEN_WIDTH_START, SCREEN_WIDTH), y))
+            if random.randint(0, 10) < 6:
+                self.stars.append(_Star(random.randint(0, SCREEN_WIDTH), y))
 
     def update(self, game_speed=1):
         self._generate_new_stars()
@@ -46,8 +47,8 @@ class StarField:
     def _generate_new_stars(self):
         """generate new stars at the top of the screen"""
         if (pyxel.frame_count % 15 == 0):
-            for _ in range(random.randint(6, 10)):
-                self.stars.append(_Star(random.randint(GAME_SCREEN_WIDTH_START, SCREEN_WIDTH), 0))
+            for _ in range(3):#random.randint(6, 10)):
+                self.stars.append(_Star(random.randint(0, SCREEN_WIDTH), 0))
 
     def _update_stars(self, game_speed):
         """
