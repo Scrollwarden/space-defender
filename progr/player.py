@@ -142,11 +142,12 @@ class Player:
                 self.lazer_liste.append(Projectile('lazer', self.x+8, self.y-10, 4, -1))
         # rockets
         if pyxel.btnr(pyxel.KEY_R):
-            self.play_the_sound.rocket()
             if not self.rocket_waiter1 == 0 and self.rocket_waiter2 == 0 and score >= SCORE_DOUBLE_ROCKET:
+                self.play_the_sound.rocket()
                 self.rockets_list.append(Projectile('rocket', self.x-10, self.y-10, 3, -1))
                 self.rocket_waiter2 = ROCKET_RELOAD
             if self.rocket_waiter1 == 0 and score >= SCORE_ROCKET:
+                self.play_the_sound.rocket()
                 self.rockets_list.append(Projectile('rocket', self.x-6, self.y-14, 3, -1))
                 self.rocket_waiter1 = ROCKET_RELOAD
         # lazerbram

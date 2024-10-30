@@ -162,7 +162,7 @@ class MainScreen:
         """dessine un aperçu du leaderboard"""
         pyxel.rect(74, 30*5, SCREEN_WIDTH-74*2, 60, 0)
         pyxel.rectb(74, 30*5, SCREEN_WIDTH-74*2, 60, 3)
-        pyxel.text(78, 30*5 +5, 'LEADERBOARD (not functionnal)', 3)
+        pyxel.text(78, 30*5 +5, 'LEADERBOARD (unfunctionnal)', 3)
         i = 1
         for player, score, niveau in (('Matthew #3', 1300, 3), ('Matthew #2', 473, 1), ('Matthew #1', 462, 1)):
             pyxel.text(78, 30*5 +10+(i*8), f'{i}. {player} : {score} (N{niveau})', 7)

@@ -63,8 +63,8 @@ class Game:
             self._key_reset()
             self._key_continue()
             #   quit app
-            if pyxel.btnr(pyxel.KEY_Q):
-                DEBUGGER.msg('ON QUIT\nLevel was hardstopped. Go back to Menu.', note='INFO')
+            if pyxel.btnr(pyxel.KEY_M):
+                DEBUGGER.msg('ON KEY M\nLevel was stopped. Go back to Menu.', note='INFO')
                 self.current_screen = MainScreen()
 
     def _update_launching(self):
@@ -175,9 +175,8 @@ class Niveau:
     def draw(self):
         """Dessine l'écran"""
         pyxel.cls(0)
-        pyxel.rect(0, 0, GAME_SCREEN_WIDTH_START, SCREEN_HEIGHT, 0)
-        pyxel.rect(0-2, 0, 2, SCREEN_HEIGHT, 13) # side bar. must be improved before release
-        pyxel.text(SCREEN_WIDTH-25*2, 12, 'Quit app (Q)', 8)
+        # pyxel.rect(0, 0, GAME_SCREEN_WIDTH_START, SCREEN_HEIGHT, 0)
+        # pyxel.rect(0-2, 0, 2, SCREEN_HEIGHT, 13) # side bar. must be improved before release
         self.background.draw()
         if self.vies > 0:
             self.player.draw(self.table_points['score'])
@@ -195,6 +194,7 @@ class Niveau:
             DEBUGGER.set_var('game over', False)
             self._draw_player_ui()
             self._draw_score()
+            pyxel.text(SCREEN_WIDTH-25*2, 12, 'Quit game (M)', 8)
         else:
             DEBUGGER.set_var('game over', True)
             self.draw_game_over() # may move to Game class
@@ -330,7 +330,6 @@ class Niveau:
     def _check_collision(self, entity1, entity2):
         """
         [methode interne de _check_all_collisions]
-        [fonction interne de _check_all_collisions]
         vérifie les collisions entre deux entités
 
         INPUT
@@ -516,21 +515,28 @@ class Niveau:
     
     def draw_game_over(self):
         """
-        [methode interne de draw] # may move to Game
+        [methode interne de draw] # may move to Game ?
         Dessine le game over à l'écran
         """
+        mid = (GAME_SCREEN_WIDTH//2)
         # tableau de score
-        pyxel.text(64, 12, 'score : ' + str(self.table_points['score']), 7)
-        pyxel.text(64, 19, 'Classe I tues : ' + str(self.table_points['classe I tues']), 7)
-        pyxel.text(64, 26, 'Classe II tues : ' + str(self.table_points['classe II tues']), 7)
-        pyxel.text(64, 40, 'Ennemis passes : ' + str(self.table_points['ennemis passes']) + ' (' + str(self.table_points['degats totaux']) + ')', 7)
+        pyxel.text(mid-16, 12, f'NIVEAU {self.current_level}', 7)
+        tab_score = 48
+        pyxel.text(mid-48, tab_score + 12, 'score : ' + str(self.table_points['score']), 7)
+        pyxel.text(mid-48, tab_score + 19, 'Classe I tues : ' + str(self.table_points['classe I tues']), 7)
+        pyxel.text(mid-48, tab_score + 26, 'Classe II tues : ' + str(self.table_points['classe II tues']), 7)
+        pyxel.text(mid-48, tab_score + 40, 'Ennemis passes : ' + str(self.table_points['ennemis passes']) + ' (' + str(self.table_points['degats totaux']) + ')', 7)
         # game over
-        pyxel.text((GAME_SCREEN_WIDTH//2)-9*2, SCREEN_HEIGHT//2, 'GAME OVER', 7)
+        pyxel.text(mid-9*2, SCREEN_HEIGHT//2, 'GAME OVER', 7)
         if self.vies <= 0:
-            pyxel.text((GAME_SCREEN_WIDTH//2)-30*2, (SCREEN_HEIGHT//2)+10, 'Votre vaisseau a ete detruit.', 9)
+            pyxel.text(mid-30*2, (SCREEN_HEIGHT//2)+10, 'Votre vaisseau a ete detruit.', 9)
         if self.base_life <= 0:
-            pyxel.text((GAME_SCREEN_WIDTH//2)-26*2, (SCREEN_HEIGHT//2)+10, 'La base a ete dementelee.', 8)
+            pyxel.text(mid-26*2, (SCREEN_HEIGHT//2)+10, 'La base a ete dementelee.', 8)
         if self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
-            pyxel.text((GAME_SCREEN_WIDTH//2)-40*2, (SCREEN_HEIGHT//2)+10, 'Vous avez survecu a cette attaque !', 3)
-            pyxel.text((GAME_SCREEN_WIDTH//2)-18*2, (SCREEN_HEIGHT//2)+30, '> CONTINUE (ENTER)',9)
-        pyxel.text((GAME_SCREEN_WIDTH//2)-21*2, (SCREEN_HEIGHT//2)+40, '> RESTART (BACKSPACE)', 3)
+            pyxel.text(mid-40*2, (SCREEN_HEIGHT//2)+10, 'Vous avez survecu a cette attaque !', 3)
+            pyxel.text(mid-18*2, (SCREEN_HEIGHT//2)+30, '> CONTINUE (ENTER)',9)
+            pyxel.text(mid-18, 24, 'COMPLETED', 10)
+        else:
+            pyxel.text(mid-12, 24, 'FAILED', 10)
+        pyxel.text(mid-21*2, (SCREEN_HEIGHT//2)+40, '> RESTART (BACKSPACE)', 3)
+        pyxel.text(mid-18*2, (SCREEN_HEIGHT//2)+60, '> QUIT TO MENU (M)', 8)
