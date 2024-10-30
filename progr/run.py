@@ -13,7 +13,7 @@ from intro import MainScreen, LaunchingScreen
 from player import Player
 from enemies import Drone, Destroyer, Cruiser, Frigat, Spidrone, Dreadnought
 from projectile import Explosion, Projectile
-from background import Star
+from background import StarField
 from constants import *
 
 DEBUGGER.set_filename('run.py')
@@ -50,17 +50,22 @@ class Game:
         self.current_screen.update()
         if type(self.current_screen) == LaunchingScreen:
             self._update_launching()
+        if type(self.current_screen) == MainScreen:
+            self._update_main_screen()
+            if pyxel.btnr(pyxel.KEY_Q):
+                DEBUGGER.msg('ON QUIT\nGame was stopped on user commande Q.', note='INFO')
+                pyxel.quit()
         if type(self.current_screen) == Niveau:
             # cheats
             self._key_cheats()
             # fonctionnel
-            #   quit app
-            if pyxel.btnr(pyxel.KEY_Q):
-                DEBUGGER.msg('ON QUIT\nGame was stopped on user commande Q.', note='INFO')
-                pyxel.quit()
             #   others keys
             self._key_reset()
             self._key_continue()
+            #   quit app
+            if pyxel.btnr(pyxel.KEY_Q):
+                DEBUGGER.msg('ON QUIT\nLevel was hardstopped. Go back to Menu.', note='INFO')
+                self.current_screen = MainScreen()
 
     def _update_launching(self):
         """
@@ -68,7 +73,20 @@ class Game:
         Met à jour l'écran d'accueil
         """
         if self.current_screen.progress >= self.current_screen.duration:
-            self.current_screen = Niveau(self.score, self.nb_levels) # le niveau actuel est le niveau 1
+            self.current_screen = MainScreen()
+    
+    def _update_main_screen(self):
+            """
+            [methode interne de update]
+            Met à jour le menu du jeu
+            """
+            if pyxel.btnr(pyxel.KEY_P):
+                for key in self.score.keys(): # on remet tout à zéro
+                    self.score[key] = 0
+                self.current_screen = Niveau(self.score, self.nb_levels) # le niveau actuel est le niveau 1
+            if pyxel.btnr(pyxel.KEY_Q):
+                DEBUGGER.msg('ON QUIT\nGame was stopped on user commande Q.', note='INFO')
+                pyxel.quit()
     
     def _key_reset(self):
         """
@@ -135,21 +153,18 @@ class Niveau:
         self.drones = []
         self.destroyer = Destroyer()
         self.cruiser = Cruiser()
-        self.stars = []
+        self.background = StarField()
         self.explosions = []
         self.table_points = score
         self.game_speed = GAME_SPEED
         self.vies = PLAYER_LIFE
         self.base_life = BASE_LIFE
 
-        for y in range(1, 256):
-            self.stars.append(Star(random.randint(GAME_SCREEN_WIDTH_START, SCREEN_WIDTH), y))
-
         DEBUGGER.msg(f'LEVEL CREATION\nLevel {self.current_level} is starting.', note='INFO')
 
     def update(self):
         """Met à jour tout le jeu"""
-        self._update_stars()
+        self.background.update(self.game_speed)
         self.player.update(self.game_speed, self.vies, self.table_points['score'])
         self._update_explosions()
         self._update_drones()
@@ -163,8 +178,7 @@ class Niveau:
         pyxel.rect(0, 0, GAME_SCREEN_WIDTH_START, SCREEN_HEIGHT, 0)
         pyxel.rect(0-2, 0, 2, SCREEN_HEIGHT, 13) # side bar. must be improved before release
         pyxel.text(SCREEN_WIDTH-25*2, 12, 'Quit app (Q)', 8)
-        for star in self.stars:
-            star.draw()
+        self.background.draw()
         if self.vies > 0:
             self.player.draw(self.table_points['score'])
         for drone in self.drones:
@@ -256,22 +270,6 @@ class Niveau:
                     self.table_points['score'] -= astronef.health
                     self.base_life -= astronef.health
                 astronef.disactive()
-
-    def _update_stars(self):
-        """
-        [methode interne de update]
-        met à jour les étoiles en fond
-        """
-        # creation
-        if (pyxel.frame_count % 15 == 0):
-            for _ in range(random.randint(6, 10)):
-                self.stars.append(Star(random.randint(GAME_SCREEN_WIDTH_START, SCREEN_WIDTH), 0))
-
-        # deplacement
-        for star in self.stars:
-            star.update(self.game_speed)
-            if star.y > 256:
-                self.stars.remove(star)
 
     def _check_all_collisions(self):
         """
