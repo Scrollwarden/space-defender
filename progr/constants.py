@@ -7,7 +7,7 @@ Les constantes nécessaires au fonctionnement du jeu
 from debugger import Debugger
 
 DEBUGGER = Debugger()
-DEBUGGER.toggle(True)
+DEBUGGER.toggle(False)
 DEBUGGER.set_var('show hitbox', False)
 DEBUGGER.msg(f'Hitbox are displayed on screen.', note='WARN', condition='show hitbox')
 
@@ -48,6 +48,7 @@ GAME_SCREEN_WIDTH_START = SCREEN_WIDTH-GAME_SCREEN_WIDTH
 
 PATH_IMAGES = "../ress/img/"
 LOGO_STUDIO = PATH_IMAGES+"logo_dicescreen_pyxel.pyxres"
+LOGO_GAME = PATH_IMAGES+"logo_space_defender_pyxel.pyxres"
 
 # colors
 

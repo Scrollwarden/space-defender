@@ -8,25 +8,12 @@ CLASSES
 import pyxel
 from sounds import Musicien
 from constants import *
+# imports pour les animations
+from background import StarField
+from enemies import Drone
+import random
 
-class MainScreen:
-    '''
-    Contrôleur : Écran d'accueil du jeu
-
-    ATTRIBUTES
-
-    METHODS
-    - update
-    - draw
-    '''
-    def __init__(self):
-        pass
-
-    def update(self):
-        pass
-
-    def draw(self):
-        pass
+DEBUGGER.set_filename('intro.py')
 
 
 class LaunchingScreen:
@@ -103,3 +90,78 @@ class LaunchingScreen:
                 self.step += 1
         if self.progress == 20:
             self.play_the_sound.launching()
+
+
+class MainScreen:
+    '''
+    Contrôleur : Écran d'accueil du jeu
+
+    ATTRIBUTES
+
+    METHODS
+    - update
+    - draw
+    '''
+    def __init__(self):
+        self.background = StarField()
+        self.background_entites = []
+
+        DEBUGGER.msg('Menu screen displayed.', note='INFO')
+
+    def update(self):
+        self._update_background_anim()
+
+    def draw(self):
+        pyxel.cls(0)
+        self.background.draw()
+        for entity in self.background_entites:
+            entity.draw()
+        pyxel.rect(70, 30, SCREEN_WIDTH-70*2, SCREEN_HEIGHT-30*2, 0)
+        pyxel.rectb(70, 30, SCREEN_WIDTH-70*2, SCREEN_HEIGHT-30*2, 10)
+        self._draw_title()
+        self._draw_buttons()
+        self._draw_leaderboard_preview()
+
+    def _update_background_anim(self):
+        """Animation en fond."""
+        self.background.update()
+        self._create_background_entities()
+        for entity in self.background_entites:
+            entity.update(1, 0)
+
+    def _create_background_entities(self):
+        """Mise à jour des entités en fond."""
+        if pyxel.frame_count % 120 == 0:
+            for _ in range(random.randint(1, 3)):
+                x, y = (random.randint(0, SCREEN_WIDTH), -10)
+                self.background_entites.append(Drone(x + random.randint(-10, 10), y + random.randint(-15, 15)))
+
+    def _draw_title(self):
+        """dessine le titre du jeu"""
+        pyxel.load(LOGO_GAME)
+        pyxel.blt(SCREEN_WIDTH//2-(16*2.5), SCREEN_HEIGHT//4-32, 0, 0, 0, 16*5, 16*2, scale=1)
+
+    def _draw_buttons(self):
+        """dessine les boutons"""
+        mid_w = SCREEN_WIDTH//2
+        mid_h = SCREEN_HEIGHT//4 +16
+        i = 0
+        for text, c in (('> TUTORIAL (T)', 11), ('> PLAY GAME (P)', 10), ('> SHOW LEADERBOARD (L)', 9), ('> QUIT GAME (Q)', 8)):
+            pyxel.text(mid_w-(len(text)*2), mid_h+i, text, c)
+            i += 10
+
+    def _draw_leaderboard_preview(self):
+        """dessine un aperçu du leaderboard"""
+        pyxel.rect(74, 30*5, SCREEN_WIDTH-74*2, 60, 0)
+        pyxel.rectb(74, 30*5, SCREEN_WIDTH-74*2, 60, 3)
+        pyxel.text(78, 30*5 +5, 'LEADERBOARD', 3)
+        i = 1
+        for player, score, niveau in (('__________', '...', '...'), ('__________', '...', '...'), ('__________', '...', '...')):
+            pyxel.text(78, 30*5 +10+(i*8), f'{i}. {player} : {score} (N{niveau})', 7)
+            i += 1
+
+
+# pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="test")
+# pyxel.fullscreen(True)
+# menu = MainScreen()
+# pyxel.run(menu.update, menu.draw)
