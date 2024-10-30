@@ -32,6 +32,7 @@ class Player:
     def __init__(self):
         self.x = START_POSITION_X
         self.y = START_POSITION_Y
+        self.speed = PLAYER_SPEED
         self.shield = Shield()
         self.detector = Detector()
         self.lazer_liste = []
@@ -115,13 +116,13 @@ class Player:
             booster = 4
             self.booster_waiter = BOOSTER_RELOAD
         if pyxel.btn(pyxel.KEY_RIGHT) and self.x < SCREEN_WIDTH - self.hitbox[2]:
-            self.x += PLAYER_SPEED * game_speed * booster
+            self.x += self.speed * game_speed * booster
         if pyxel.btn(pyxel.KEY_LEFT) and self.x > GAME_SCREEN_WIDTH_START +- self.hitbox[0]:
-            self.x -= PLAYER_SPEED * game_speed * booster
+            self.x -= self.speed * game_speed * booster
         if pyxel.btn(pyxel.KEY_DOWN) and self.y < GAME_SCREEN_HEIGHT - self.hitbox[3]:
-            self.y += PLAYER_SPEED * game_speed * booster
+            self.y += self.speed * game_speed * booster
         if pyxel.btn(pyxel.KEY_UP) and self.y > 0 - self.hitbox[1]:
-            self.y -= PLAYER_SPEED * game_speed * booster
+            self.y -= self.speed * game_speed * booster
 
     def _fire(self, score):
         """
@@ -129,7 +130,10 @@ class Player:
         fait tirer le vaisseau, lazer, rockets, lazerbeam
         """
         # lazer
+        if pyxel.btnp(pyxel.KEY_SPACE):
+            self.speed -= TARGETING_SLOWING # vitesse réduite quand le pilote vise.
         if pyxel.btnr(pyxel.KEY_SPACE):
+            self.speed += TARGETING_SLOWING # vitesse remise à la normale quand le pilote relache.
             self.play_the_sound.lazer()
             self.lazer_liste.append(Projectile('lazer', self.x, self.y-10, 4, -1))
             if score >= SCORE_DOUBLE_TIR:
