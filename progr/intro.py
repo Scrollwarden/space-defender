@@ -121,6 +121,14 @@ class MainScreen:
         self._draw_title()
         self._draw_buttons()
         self._draw_leaderboard_preview()
+        self._draw_not_functional()
+
+    def _draw_not_functional(self):
+        """METHODE EPHEMERE : affiche un message d'erreur lors de l'utilisation d'un selecteur non implémenté"""
+        if pyxel.btn(pyxel.KEY_L) or pyxel.btn(pyxel.KEY_T):
+            pyxel.rect(100, 100, 100, 20, 0)
+            pyxel.rectb(100, 100, 100, 20, 15)
+            pyxel.text(105, 105, "OPTION INDISPONIBLE", 15)
 
     def _update_background_anim(self):
         """Animation en fond."""
@@ -139,12 +147,12 @@ class MainScreen:
     def _draw_title(self):
         """dessine le titre du jeu"""
         pyxel.load(LOGO_GAME)
-        pyxel.blt(SCREEN_WIDTH//2-(16*2.5), SCREEN_HEIGHT//4-32, 0, 0, 0, 16*5, 16*2, scale=1)
+        pyxel.blt(SCREEN_WIDTH//2-(16*2.5), SCREEN_HEIGHT//4-27, 0, 0, 0, 16*5, 16*2, scale=1)
 
     def _draw_buttons(self):
         """dessine les boutons"""
         mid_w = SCREEN_WIDTH//2
-        mid_h = SCREEN_HEIGHT//4 +16
+        mid_h = SCREEN_HEIGHT//4 +20
         i = 0
         for text, c in (('> TUTORIAL (T)', 11), ('> PLAY GAME (P)', 10), ('> SHOW LEADERBOARD (L)', 9), ('> QUIT GAME (Q)', 8)):
             pyxel.text(mid_w-(len(text)*2), mid_h+i, text, c)
@@ -154,14 +162,8 @@ class MainScreen:
         """dessine un aperçu du leaderboard"""
         pyxel.rect(74, 30*5, SCREEN_WIDTH-74*2, 60, 0)
         pyxel.rectb(74, 30*5, SCREEN_WIDTH-74*2, 60, 3)
-        pyxel.text(78, 30*5 +5, 'LEADERBOARD', 3)
+        pyxel.text(78, 30*5 +5, 'LEADERBOARD (not functionnal)', 3)
         i = 1
-        for player, score, niveau in (('__________', '...', '...'), ('__________', '...', '...'), ('__________', '...', '...')):
+        for player, score, niveau in (('Matthew #3', 1300, 3), ('Matthew #2', 473, 1), ('Matthew #1', 462, 1)):
             pyxel.text(78, 30*5 +10+(i*8), f'{i}. {player} : {score} (N{niveau})', 7)
             i += 1
-
-
-# pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="test")
-# pyxel.fullscreen(True)
-# menu = MainScreen()
-# pyxel.run(menu.update, menu.draw)

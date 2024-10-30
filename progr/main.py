@@ -3,7 +3,7 @@ Space Defender
 ==============
 Jeu de type space shooter
 Créé : 5/10/2024
-Auteur : Matthew batt
+Auteur : Matthew Batt
 
 Ce fichier permet de lancer le programme.
 """

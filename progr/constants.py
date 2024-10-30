@@ -13,7 +13,7 @@ DEBUGGER.msg(f'Hitbox are displayed on screen.', note='WARN', condition='show hi
 
 # sounds
 
-SOUNDS_ALLOWED = False
+SOUNDS_ALLOWED = True
 MAX_SOUNDS = 10
 
 PATH_SOUNDS = "../ress/sounds/"

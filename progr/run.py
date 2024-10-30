@@ -81,6 +81,8 @@ class Game:
             Met à jour le menu du jeu
             """
             if pyxel.btnr(pyxel.KEY_P):
+                for key in self.score.keys(): # on remet tout à zéro
+                    self.score[key] = 0
                 self.current_screen = Niveau(self.score, self.nb_levels) # le niveau actuel est le niveau 1
             if pyxel.btnr(pyxel.KEY_Q):
                 DEBUGGER.msg('ON QUIT\nGame was stopped on user commande Q.', note='INFO')
