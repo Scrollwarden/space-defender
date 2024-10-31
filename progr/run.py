@@ -57,7 +57,8 @@ class Game:
                 pyxel.quit()
         if type(self.current_screen) == Niveau:
             # cheats
-            self._key_cheats()
+            if DEBUGGER.is_active():
+                self._key_cheats()
             # fonctionnel
             #   others keys
             self._key_reset()
