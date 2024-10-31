@@ -58,10 +58,11 @@ class Drone:
 
     def draw(self):
         """Dessine le Drone"""
-        pyxel.rect(self.x, self.y, 8, 8, 13) # armature
-        pyxel.tri(self.x+1, self.y+8, self.x+6, self.y+8, self.x+4, self.y+4, 0) # trou arrière pour les ailes
-        pyxel.tri(self.x+1, self.y, self.x+6, self.y, self.x+4, self.y+4, 0) # trou avant pour les ailes
-        pyxel.rect(self.x+4, self.y-self.anim_reacteurs[0], 1, 2+self.anim_reacteurs[0], 10) # réacteur de poupe central
+        pyxel.blt(self.x, self.y, 0, 0, 0, 8, 16, colkey=0, scale=SPACESHIP_SCALE)
+        # pyxel.rect(self.x, self.y, 8, 8, 13) # armature
+        # pyxel.tri(self.x+1, self.y+8, self.x+6, self.y+8, self.x+4, self.y+4, 0) # trou arrière pour les ailes
+        # pyxel.tri(self.x+1, self.y, self.x+6, self.y, self.x+4, self.y+4, 0) # trou avant pour les ailes
+        pyxel.rect(self.x+3, self.y-self.anim_reacteurs[0], 1, 2+self.anim_reacteurs[0], 10) # réacteur de poupe central
         
     def update_animation(self):
         """Animation des réacteurs"""
@@ -127,8 +128,6 @@ class Destroyer:
                 self.fire()
         self.update_animation()
 
-            #self.update_projectiles(game_speed)
-
     def update_projectiles(self, game_speed):
         """
         mise à jour de la position des lazers
@@ -142,11 +141,12 @@ class Destroyer:
     def draw(self):
         """affiche le destroyer à l'écran"""
         if self.active:
+            pyxel.blt(self.x-6, self.y-6, 0, 16, 0, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
             pyxel.rect(self.x-1, self.y-5-self.anim_reacteurs[0], 3, 2+self.anim_reacteurs[0], 10) # réacteur de poupe central
-            pyxel.rect(self.x-6, self.y, 12, 2, 13) # barre de soutien des ailes
-            pyxel.circ(self.x, self.y, 4, 13) # armature
-            pyxel.rect(self.x-6, self.y-4, 2, 8, 13) # aile babord
-            pyxel.rect(self.x+6, self.y-4, 2, 8, 13) # aile tribord
+            # pyxel.rect(self.x-6, self.y, 12, 2, 13) # barre de soutien des ailes
+            # pyxel.circ(self.x, self.y, 4, 13) # armature
+            # pyxel.rect(self.x-6, self.y-4, 2, 8, 13) # aile babord
+            # pyxel.rect(self.x+6, self.y-4, 2, 8, 13) # aile tribord
             # barre de vie
             if self.health != DESTROYER_LIFE:
                 pyxel.rect(self.x-(self.health//2), self.y+10, self.health, 1, 3)
@@ -221,9 +221,10 @@ class Cruiser(Destroyer):
     def draw(self):
         """dessine le croiseur à l'écran"""
         if self.active:
+            pyxel.blt(self.x-6, self.y-6, 0, 32, 0, 16, 24, colkey=0, scale=SPACESHIP_SCALE)
             pyxel.rect(self.x-1, self.y-5-self.anim_reacteurs[0], 3, 2+self.anim_reacteurs[0], 10) # réacteur de poupe central
-            pyxel.tri(self.x-6, self.y, self.x+6, self.y, self.x, self.y+9, 13) # armature de proue
-            pyxel.tri(self.x-6, self.y-1, self.x+6, self.y-1, self.x, self.y-7, 13) # armature de poupe
+            # pyxel.tri(self.x-6, self.y, self.x+6, self.y, self.x, self.y+9, 13) # armature de proue
+            # pyxel.tri(self.x-6, self.y-1, self.x+6, self.y-1, self.x, self.y-7, 13) # armature de poupe
             # barre de vie
             if self.health != CRUISER_HEALTH:
                 pyxel.rect(self.x-(self.health//2), self.y+10, self.health, 1, 3)
@@ -279,4 +280,4 @@ class Frigat:
 
 
 class Dreadnought:
-    pass
+    pass # scale *2

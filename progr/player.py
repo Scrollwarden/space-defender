@@ -59,40 +59,52 @@ class Player:
         
     def draw(self, score):
         """dessine l'astronef"""
-        # sous le corps de l'astronef
-        if score >= SCORE_LAZERBEAM:
-            pyxel.rect(self.x+8, self.y-2, 5, 8, 13) # support de pointe du canon lazer
-            pyxel.tri(self.x+8, self.y-2, self.x+12, self.y-2, self.x+10, self.y-5, 13) # pointe du canon lazer
-            color_chargeur = 8
-            if self.lazerbeam_waiter != 0:
-                color_chargeur = 1
-                if self.lazerbeam_waiter <= 15:
-                    color_chargeur = 15-self.lazerbeam_waiter
-            pyxel.rect(self.x+10, self.y-1, 1, 4, color_chargeur) # chargeur du canon lazer
-
-        # astronef
-        pyxel.rect(self.x-4, self.y+7, 3, 3+self.anim_reacteurs[0], 6) # réacteur de poupe babord
-        pyxel.rect(self.x+2, self.y+7, 3, 3+self.anim_reacteurs[0], 6) # réacteur de poupe tribord
-        pyxel.circ(self.x, self.y, 8, 7) # armature
-        pyxel.circ(self.x+5, self.y, 2, 6) # cokpit
-        pyxel.circb(self.x+5, self.y, 3, 13) # jointure cokpit
-        pyxel.tri(self.x-4, self.y+6, self.x+3, self.y+6, self.x, self.y, 2) # triange coloré de poupe
-        pyxel.rect(self.x, self.y-9, 1, 4, 13) # canon de proue
-        # upgrade
-        if score >= SCORE_DOUBLE_TIR:
-            pyxel.rect(self.x+4, self.y-9, 1, 4, 13) # 2e canon de proue
-        if score >= SCORE_TRIPLE_TIR:
-            pyxel.rect(self.x+8, self.y-7, 1, 5, 13) # 3e canon de proue
+        if score < SCORE_DESTROYER-25:
+            pyxel.blt(self.x-8, self.y-8, 0, 0, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE*1.25)
+        elif score >= SCORE_DESTROYER-25:
+            pyxel.blt(self.x-8, self.y-8, 0, 16, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE*1.25)
         if score >= SCORE_ROCKET:
-            pyxel.rect(self.x-6, self.y-8, 4, 10, 13) # tube lance-roquettes 1
-            pyxel.rect(self.x-5, self.y-4, 1, 5, 10-self.rocket_waiter1) # chargeur tube 1
+            pyxel.blt(self.x-8, self.y-8, 0, 32, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE*1.25)
+        if score >= SCORE_DOUBLE_TIR:
+            pyxel.blt(self.x-8, self.y-8, 0, 48, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE*1.25)
         if score >= SCORE_DOUBLE_ROCKET:
-            pyxel.rect(self.x-10, self.y-4, 4, 10, 13) # tube lance-roquettes 2
-            pyxel.rect(self.x-9, self.y, 1, 5, 10-self.rocket_waiter2) # chargeur tube 2
-        if score >= SCORE_BOOSTER:
-            pass
-        if score >= SCORE_LOCKER:
-            pass
+            pyxel.blt(self.x-8, self.y-8, 0, 64, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE*1.25)
+        if score >= SCORE_LAZERBEAM:
+            pyxel.blt(self.x-8, self.y-8, 0, 80, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE*1.25)
+        # # sous le corps de l'astronef
+        # if score >= SCORE_LAZERBEAM:
+        #     pyxel.rect(self.x+8, self.y-2, 5, 8, 13) # support de pointe du canon lazer
+        #     pyxel.tri(self.x+8, self.y-2, self.x+12, self.y-2, self.x+10, self.y-5, 13) # pointe du canon lazer
+        #     color_chargeur = 8
+        #     if self.lazerbeam_waiter != 0:
+        #         color_chargeur = 1
+        #         if self.lazerbeam_waiter <= 15:
+        #             color_chargeur = 15-self.lazerbeam_waiter
+        #     pyxel.rect(self.x+10, self.y-1, 1, 4, color_chargeur) # chargeur du canon lazer
+
+        # # astronef
+        # pyxel.rect(self.x-4, self.y+7, 3, 3+self.anim_reacteurs[0], 6) # réacteur de poupe babord
+        # pyxel.rect(self.x+2, self.y+7, 3, 3+self.anim_reacteurs[0], 6) # réacteur de poupe tribord
+        # pyxel.circ(self.x, self.y, 8, 7) # armature
+        # pyxel.circ(self.x+5, self.y, 2, 6) # cokpit
+        # pyxel.circb(self.x+5, self.y, 3, 13) # jointure cokpit
+        # pyxel.tri(self.x-4, self.y+6, self.x+3, self.y+6, self.x, self.y, 2) # triange coloré de poupe
+        # pyxel.rect(self.x, self.y-9, 1, 4, 13) # canon de proue
+        # # upgrade
+        # if score >= SCORE_DOUBLE_TIR:
+        #     pyxel.rect(self.x+4, self.y-9, 1, 4, 13) # 2e canon de proue
+        # if score >= SCORE_TRIPLE_TIR:
+        #     pyxel.rect(self.x+8, self.y-7, 1, 5, 13) # 3e canon de proue
+        # if score >= SCORE_ROCKET:
+        #     pyxel.rect(self.x-6, self.y-8, 4, 10, 13) # tube lance-roquettes 1
+        #     pyxel.rect(self.x-5, self.y-4, 1, 5, 10-self.rocket_waiter1) # chargeur tube 1
+        # if score >= SCORE_DOUBLE_ROCKET:
+        #     pyxel.rect(self.x-10, self.y-4, 4, 10, 13) # tube lance-roquettes 2
+        #     pyxel.rect(self.x-9, self.y, 1, 5, 10-self.rocket_waiter2) # chargeur tube 2
+        # if score >= SCORE_BOOSTER:
+        #     pass
+        # if score >= SCORE_LOCKER:
+        #     pass
         
         if score >= SCORE_DESTROYER-25:
             self.shield.draw(self.x, self.y) # Bouclier

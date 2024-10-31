@@ -42,7 +42,6 @@ class Game:
         self.current_screen = LaunchingScreen()
         self.nb_levels = 0
         self.musicien = Musicien()
-
         DEBUGGER.msg('Game Launched.', note='INFO')
 
     def update(self):
@@ -159,6 +158,8 @@ class Niveau:
         self.game_speed = GAME_SPEED
         self.vies = PLAYER_LIFE
         self.base_life = BASE_LIFE
+        # load content
+        pyxel.load(SPACESHIP_TEXTURES)
 
         DEBUGGER.msg(f'LEVEL CREATION\nLevel {self.current_level} is starting.', note='INFO')
 
