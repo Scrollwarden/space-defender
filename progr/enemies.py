@@ -38,7 +38,7 @@ class Drone:
         self.y = y
         self.dead = False
         self.anim_reacteurs = [0, True]
-        self.hitbox = (0, 0, 8, 8) # x, x+w, y, y+h
+        self.hitbox = (0, 0, 8, 10) # x, x+w, y, y+h
 
     def __str__(self):
         return f"Drone (x{self.x}, y{self.y})"
@@ -59,9 +59,6 @@ class Drone:
     def draw(self):
         """Dessine le Drone"""
         pyxel.blt(self.x, self.y, 0, 0, 0, 8, 16, colkey=0, scale=SPACESHIP_SCALE)
-        # pyxel.rect(self.x, self.y, 8, 8, 13) # armature
-        # pyxel.tri(self.x+1, self.y+8, self.x+6, self.y+8, self.x+4, self.y+4, 0) # trou arrière pour les ailes
-        # pyxel.tri(self.x+1, self.y, self.x+6, self.y, self.x+4, self.y+4, 0) # trou avant pour les ailes
         pyxel.rect(self.x+3, self.y-self.anim_reacteurs[0], 1, 2+self.anim_reacteurs[0], 10) # réacteur de poupe central
         
     def update_animation(self):
@@ -104,7 +101,7 @@ class Destroyer:
         self.dead = False
         self.projectiles = []
         self.shoot_state = 1
-        self.hitbox = (-6, -4, 14, 8) # x, y, w, h
+        self.hitbox = (0, 0, 16, 16) # x, y, w, h
         self.anim_reacteurs = [0, True]
         self.play_the_sound = Musicien()
 
@@ -141,15 +138,11 @@ class Destroyer:
     def draw(self):
         """affiche le destroyer à l'écran"""
         if self.active:
-            pyxel.blt(self.x-6, self.y-6, 0, 16, 0, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
-            pyxel.rect(self.x-1, self.y-5-self.anim_reacteurs[0], 3, 2+self.anim_reacteurs[0], 10) # réacteur de poupe central
-            # pyxel.rect(self.x-6, self.y, 12, 2, 13) # barre de soutien des ailes
-            # pyxel.circ(self.x, self.y, 4, 13) # armature
-            # pyxel.rect(self.x-6, self.y-4, 2, 8, 13) # aile babord
-            # pyxel.rect(self.x+6, self.y-4, 2, 8, 13) # aile tribord
+            pyxel.rect(self.x+7, self.y+4-self.anim_reacteurs[0], 2, self.anim_reacteurs[0], 10)
+            pyxel.blt(self.x, self.y, 0, 16, 0, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
             # barre de vie
             if self.health != DESTROYER_LIFE:
-                pyxel.rect(self.x-(self.health//2), self.y+10, self.health, 1, 3)
+                pyxel.rect(self.x+8-(self.health//2), self.y+20, self.health, 1, 3)
     
     def draw_projectiles(self):
         """dessine les projectiles du destroyer. Géré séparément dans Game pour éviter la disparition des lazers lors de la mort du destroyer"""
@@ -161,11 +154,11 @@ class Destroyer:
         fire_all = (random.randint(0, 6) == 6)
         if fire_all or self.shoot_state == 0:
             self.play_the_sound.lazer()
-            self.projectiles.append(Projectile('destlazer', self.x-3, self.y+10, 3, 1))
+            self.projectiles.append(Projectile('destlazer', self.x+5, self.y+10, 3, 1))
             self.shoot_state = 1
         elif fire_all or self.shoot_state == 1:
             self.play_the_sound.lazer()
-            self.projectiles.append(Projectile('destlazer', self.x+3, self.y+10, 3, 1))
+            self.projectiles.append(Projectile('destlazer', self.x+11, self.y+10, 3, 1))
             self.shoot_state = 0
 
     def update_animation(self):
@@ -201,7 +194,7 @@ class Cruiser(Destroyer):
     def __init__(self):
         super().__init__()
         self.health = CRUISER_HEALTH
-        self.hitbox = (-6, -4, 14, 8) # x, y, w, h
+        self.hitbox = (0, 0, 24, 16) # x, y, w, h
         self.lazerbeam_list = []
     
     def __str__(self):
@@ -221,25 +214,19 @@ class Cruiser(Destroyer):
     def draw(self):
         """dessine le croiseur à l'écran"""
         if self.active:
-            pyxel.blt(self.x-6, self.y-6, 0, 32, 0, 16, 24, colkey=0, scale=SPACESHIP_SCALE)
-            pyxel.rect(self.x-1, self.y-5-self.anim_reacteurs[0], 3, 2+self.anim_reacteurs[0], 10) # réacteur de poupe central
-            # pyxel.tri(self.x-6, self.y, self.x+6, self.y, self.x, self.y+9, 13) # armature de proue
-            # pyxel.tri(self.x-6, self.y-1, self.x+6, self.y-1, self.x, self.y-7, 13) # armature de poupe
-            # barre de vie
+            pyxel.rect(self.x+3, self.y-self.anim_reacteurs[0], 2, 2+self.anim_reacteurs[0], 10)
+            pyxel.rect(self.x+11, self.y-self.anim_reacteurs[0], 2, 2+self.anim_reacteurs[0], 10)
+            pyxel.blt(self.x, self.y, 0, 32, 0, 16, 24, colkey=0, scale=SPACESHIP_SCALE)
             if self.health != CRUISER_HEALTH:
-                pyxel.rect(self.x-(self.health//2), self.y+10, self.health, 1, 3)
+                pyxel.rect(self.x+8-(self.health//2), self.y+30, self.health, 1, 3)
 
             for lazerbeam in self.lazerbeam_list:
                 lazerbeam.draw()
 
     def fire(self):
         """fait tirer un rayon lazer au croiseur"""
-        self.lazerbeam_list.append(Lazerbeam('destlazer', self.x, self.y+10, 1))
+        self.lazerbeam_list.append(Lazerbeam('destlazer', self.x+7, self.y+20, 1))
         self.play_the_sound.lazebeam_load()
-        # if random.randint(0, 100) == 50:
-        #    self.lazerbeam_list.append(Lazerbeam('destlazer', self.x, self.y, 1))
-        # else:
-        #    super().fire()
 
     def update_projectiles(self, game_speed):
         """

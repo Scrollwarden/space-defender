@@ -59,6 +59,10 @@ class Player:
         
     def draw(self, score):
         """dessine l'astronef"""
+
+        pyxel.rect(self.x-3, self.y+6, 2, 3+self.anim_reacteurs[0], 6)
+        pyxel.rect(self.x+1, self.y+6, 2, 3+self.anim_reacteurs[0], 6)
+
         if score < SCORE_DESTROYER-25:
             pyxel.blt(self.x-8, self.y-8, 0, 0, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
         elif score >= SCORE_DESTROYER-25:
@@ -71,45 +75,25 @@ class Player:
             pyxel.blt(self.x-8, self.y-8, 0, 64, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
         if score >= SCORE_LAZERBEAM:
             pyxel.blt(self.x-8, self.y-8, 0, 80, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
-        # # sous le corps de l'astronef
-        # if score >= SCORE_LAZERBEAM:
-        #     pyxel.rect(self.x+8, self.y-2, 5, 8, 13) # support de pointe du canon lazer
-        #     pyxel.tri(self.x+8, self.y-2, self.x+12, self.y-2, self.x+10, self.y-5, 13) # pointe du canon lazer
         #     color_chargeur = 8
         #     if self.lazerbeam_waiter != 0:
         #         color_chargeur = 1
         #         if self.lazerbeam_waiter <= 15:
         #             color_chargeur = 15-self.lazerbeam_waiter
         #     pyxel.rect(self.x+10, self.y-1, 1, 4, color_chargeur) # chargeur du canon lazer
-
-        # # astronef
-        # pyxel.rect(self.x-4, self.y+7, 3, 3+self.anim_reacteurs[0], 6) # réacteur de poupe babord
-        # pyxel.rect(self.x+2, self.y+7, 3, 3+self.anim_reacteurs[0], 6) # réacteur de poupe tribord
-        # pyxel.circ(self.x, self.y, 8, 7) # armature
-        # pyxel.circ(self.x+5, self.y, 2, 6) # cokpit
-        # pyxel.circb(self.x+5, self.y, 3, 13) # jointure cokpit
-        # pyxel.tri(self.x-4, self.y+6, self.x+3, self.y+6, self.x, self.y, 2) # triange coloré de poupe
-        # pyxel.rect(self.x, self.y-9, 1, 4, 13) # canon de proue
-        # # upgrade
-        # if score >= SCORE_DOUBLE_TIR:
-        #     pyxel.rect(self.x+4, self.y-9, 1, 4, 13) # 2e canon de proue
-        # if score >= SCORE_TRIPLE_TIR:
-        #     pyxel.rect(self.x+8, self.y-7, 1, 5, 13) # 3e canon de proue
         # if score >= SCORE_ROCKET:
-        #     pyxel.rect(self.x-6, self.y-8, 4, 10, 13) # tube lance-roquettes 1
-        #     pyxel.rect(self.x-5, self.y-4, 1, 5, 10-self.rocket_waiter1) # chargeur tube 1
+        #     pyxel.rect(self.x-5, self.y-4, 1, 5, 10-self.rocket_waiter1)
         # if score >= SCORE_DOUBLE_ROCKET:
-        #     pyxel.rect(self.x-10, self.y-4, 4, 10, 13) # tube lance-roquettes 2
-        #     pyxel.rect(self.x-9, self.y, 1, 5, 10-self.rocket_waiter2) # chargeur tube 2
-        # if score >= SCORE_BOOSTER:
-        #     pass
-        # if score >= SCORE_LOCKER:
-        #     pass
+        #     pyxel.rect(self.x-9, self.y, 1, 5, 10-self.rocket_waiter2)
+        if score >= SCORE_BOOSTER:
+           pass
+        if score >= SCORE_LOCKER:
+            pass
         
         if score >= SCORE_DESTROYER-25:
-            self.shield.draw(self.x, self.y) # Bouclier
+            self.shield.draw(self.x, self.y)
         if score >= SCORE_SPIDRONE-25:
-            self.detector.draw() # Détecteur
+            self.detector.draw()
 
         for lazer in self.lazer_liste:
             lazer.draw()
@@ -149,24 +133,24 @@ class Player:
             self.play_the_sound.lazer()
             self.lazer_liste.append(Projectile('lazer', self.x, self.y-10, 4, -1))
             if score >= SCORE_DOUBLE_TIR:
-                self.lazer_liste.append(Projectile('lazer', self.x+4, self.y-10, 4, -1))
+                self.lazer_liste.append(Projectile('lazer', self.x+2, self.y-10, 4, -1))
             if score >= SCORE_TRIPLE_TIR:
-                self.lazer_liste.append(Projectile('lazer', self.x+8, self.y-10, 4, -1))
+                self.lazer_liste.append(Projectile('lazer', self.x+4, self.y-10, 4, -1))
         # rockets
         if pyxel.btnr(pyxel.KEY_R):
             if not self.rocket_waiter1 == 0 and self.rocket_waiter2 == 0 and score >= SCORE_DOUBLE_ROCKET:
                 self.play_the_sound.rocket()
-                self.rockets_list.append(Projectile('rocket', self.x-10, self.y-10, 3, -1))
+                self.rockets_list.append(Projectile('rocket', self.x-8, self.y-8, 3, -1))
                 self.rocket_waiter2 = ROCKET_RELOAD
             if self.rocket_waiter1 == 0 and score >= SCORE_ROCKET:
                 self.play_the_sound.rocket()
-                self.rockets_list.append(Projectile('rocket', self.x-6, self.y-14, 3, -1))
+                self.rockets_list.append(Projectile('rocket', self.x-4, self.y-12, 3, -1))
                 self.rocket_waiter1 = ROCKET_RELOAD
         # lazerbram
         if pyxel.btnr(pyxel.KEY_F) and score >= SCORE_LAZERBEAM:
             if self.lazerbeam_waiter == 0:
                 self.play_the_sound.lazebeam_load()
-                self.lazerbeam_list.append(Lazerbeam('lazer', self.x+10, self.y-5, -1))
+                self.lazerbeam_list.append(Lazerbeam('lazer', self.x+7, self.y-5, -1))
                 self.lazerbeam_waiter = LAZERBEAM_RELOAD
 
     def update_projectiles(self, game_speed):
