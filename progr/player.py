@@ -60,17 +60,17 @@ class Player:
     def draw(self, score):
         """dessine l'astronef"""
         if score < SCORE_DESTROYER-25:
-            pyxel.blt(self.x-8, self.y-8, 0, 0, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE*1.25)
+            pyxel.blt(self.x-8, self.y-8, 0, 0, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
         elif score >= SCORE_DESTROYER-25:
-            pyxel.blt(self.x-8, self.y-8, 0, 16, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE*1.25)
+            pyxel.blt(self.x-8, self.y-8, 0, 16, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
         if score >= SCORE_ROCKET:
-            pyxel.blt(self.x-8, self.y-8, 0, 32, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE*1.25)
+            pyxel.blt(self.x-8, self.y-8, 0, 32, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
         if score >= SCORE_DOUBLE_TIR:
-            pyxel.blt(self.x-8, self.y-8, 0, 48, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE*1.25)
+            pyxel.blt(self.x-8, self.y-8, 0, 48, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
         if score >= SCORE_DOUBLE_ROCKET:
-            pyxel.blt(self.x-8, self.y-8, 0, 64, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE*1.25)
+            pyxel.blt(self.x-8, self.y-8, 0, 64, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
         if score >= SCORE_LAZERBEAM:
-            pyxel.blt(self.x-8, self.y-8, 0, 80, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE*1.25)
+            pyxel.blt(self.x-8, self.y-8, 0, 80, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
         # # sous le corps de l'astronef
         # if score >= SCORE_LAZERBEAM:
         #     pyxel.rect(self.x+8, self.y-2, 5, 8, 13) # support de pointe du canon lazer
