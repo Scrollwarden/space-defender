@@ -34,11 +34,12 @@ class LaunchingScreen:
         self.progress = 0
         self.step = 0
         self.play_the_sound = Musicien()
+        # load content
+        pyxel.load(LOGO_STUDIO)
 
     def draw(self):
         """dessine l'écran de lancement"""
         if self.step <= 20:
-            pyxel.load(LOGO_STUDIO)
             pyxel.blt((SCREEN_WIDTH//2)-8*6, (SCREEN_HEIGHT//2)-8*3, 0, 0, 0, 8*12, 8*5)
         elif self.step <= 30:
             pyxel.rect(0, 0, SCREEN_WIDTH, (SCREEN_HEIGHT//20)*(self.step-19), 0)
@@ -105,6 +106,8 @@ class MainScreen:
     def __init__(self):
         self.background = StarField()
         self.background_entites = []
+        # load content
+        pyxel.load(LOGO_GAME)
 
         DEBUGGER.msg('Menu screen displayed.', note='INFO')
 
@@ -142,11 +145,10 @@ class MainScreen:
         if pyxel.frame_count % 120 == 0:
             for _ in range(random.randint(1, 3)):
                 x, y = (random.randint(0, SCREEN_WIDTH), -10)
-                self.background_entites.append(Drone(x + random.randint(-10, 10), y + random.randint(-15, 15)))
+                self.background_entites.append(_DroneIntro(x + random.randint(-10, 10), y + random.randint(-15, 15)))
 
     def _draw_title(self):
         """dessine le titre du jeu"""
-        pyxel.load(LOGO_GAME)
         pyxel.blt(SCREEN_WIDTH//2-(16*2.5), SCREEN_HEIGHT//4-27, 0, 0, 0, 16*5, 16*2, scale=1)
 
     def _draw_buttons(self):
@@ -167,3 +169,34 @@ class MainScreen:
         for player, score in (('Matthew #3', 1300), ('Matthew #2', 473), ('Matthew #1', 462)):
             pyxel.text(78, 30*5 +10+(i*8), f'{i}. {player} : {score}', 7)
             i += 1
+
+class _DroneIntro:
+    """
+    Entity : drones en déco à l'arrière-plan
+    """
+
+    def __init__(self, x:int, y:int):
+        self.x = x
+        self.y = y
+        self.anim_reacteurs = [0, True]
+
+    def update(self, game_speed, score):
+        """Met à jour le Drone"""
+        self.y += 1
+        self.update_animation()
+
+    def draw(self):
+        """Dessine le Drone"""
+        pyxel.blt(self.x, self.y, 0, 0, 32, 8, 11, colkey=0, scale=SPACESHIP_SCALE)
+        pyxel.rect(self.x+3, self.y-self.anim_reacteurs[0], 1, 2+self.anim_reacteurs[0], 10) # réacteur de poupe central
+        
+    def update_animation(self):
+        """Animation des réacteurs"""
+        if self.anim_reacteurs[1]:
+            self.anim_reacteurs[0] += 1
+            if self.anim_reacteurs[0] > 3:
+                self.anim_reacteurs[1] = False
+        else:
+            self.anim_reacteurs[0] -= 1
+            if self.anim_reacteurs[0] < 1:
+                self.anim_reacteurs[1] = True
