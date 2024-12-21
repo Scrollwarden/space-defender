@@ -4,7 +4,7 @@ Space Defender
 Jeu de type space shooter
 Créé : 5/10/2024
 Auteur : Matthew Batt
-version : develop 2.1.1-textures
+version : develop 2.1.2
 
 Ce fichier permet de lancer le programme.
 """
