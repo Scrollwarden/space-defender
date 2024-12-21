@@ -50,7 +50,7 @@ PATH_IMAGES = "../ress/img/"
 LOGO_STUDIO = PATH_IMAGES+"logo_dicescreen_pyxel.pyxres"
 LOGO_GAME = PATH_IMAGES+"logo_space_defender_pyxel.pyxres"
 SPACESHIP_TEXTURES = PATH_IMAGES+"astronefs_textures.pyxres"
-SPACESHIP_SCALE = 1.25
+SPACESHIP_SCALE = 1
 
 # colors
 
