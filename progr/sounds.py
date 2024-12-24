@@ -1,4 +1,5 @@
 import playsound
+#import PyGObject (doesn't work for some reason)
 import threading
 import random
 from constants import *

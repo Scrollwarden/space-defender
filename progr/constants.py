@@ -7,13 +7,13 @@ Les constantes nécessaires au fonctionnement du jeu
 from debugger import Debugger
 
 DEBUGGER = Debugger()
-DEBUGGER.toggle(False)
+DEBUGGER.toggle(True)
 DEBUGGER.set_var('show hitbox', False)
 DEBUGGER.msg(f'Hitbox are displayed on screen.', note='WARN', condition='show hitbox')
 
 # sounds
 
-SOUNDS_ALLOWED = False
+SOUNDS_ALLOWED = True
 MAX_SOUNDS = 10
 
 PATH_SOUNDS = "../ress/sounds/"

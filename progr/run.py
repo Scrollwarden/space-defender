@@ -66,6 +66,8 @@ class Game:
             if pyxel.btnr(pyxel.KEY_M):
                 DEBUGGER.msg('ON KEY M\nLevel was stopped. Go back to Menu.', note='INFO')
                 self.current_screen = MainScreen()
+            # music
+            # self.musicien.game()
 
     def _update_launching(self):
         """
