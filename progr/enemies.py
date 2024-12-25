@@ -60,6 +60,8 @@ class Drone:
         """Dessine le Drone"""
         pyxel.blt(self.x, self.y, 0, 0, 0, 8, 16, colkey=0, scale=SPACESHIP_SCALE)
         pyxel.rect(self.x+3, self.y-self.anim_reacteurs[0], 1, 2+self.anim_reacteurs[0], 10) # réacteur de poupe central
+        if DEBUGGER.get_var('show hitbox'):
+            pyxel.rectb(self.x+self.hitbox[0], self.y+self.hitbox[1], self.hitbox[2], self.hitbox[3], 8)
         
     def update_animation(self):
         """Animation des réacteurs"""
@@ -95,7 +97,7 @@ class Destroyer:
     '''
     def __init__(self):
         self.x = 100
-        self.y = -10
+        self.y = -30
         self.active = False
         self.health = DESTROYER_LIFE
         self.dead = False
@@ -143,6 +145,8 @@ class Destroyer:
             # barre de vie
             if self.health != DESTROYER_LIFE:
                 pyxel.rect(self.x+8-(self.health//2), self.y+20, self.health, 1, 3)
+        if DEBUGGER.get_var('show hitbox'):
+            pyxel.rectb(self.x+self.hitbox[0], self.y+self.hitbox[1], self.hitbox[2], self.hitbox[3], 8)
     
     def draw_projectiles(self):
         """dessine les projectiles du destroyer. Géré séparément dans Game pour éviter la disparition des lazers lors de la mort du destroyer"""
@@ -173,11 +177,11 @@ class Destroyer:
                 self.anim_reacteurs[1] = True
 
     def disactive(self):
-        """détruit le destroyer"""
+        """détruit l'astronef"""
         self.active = False
         self.dead = False
-        self.y = -10
-        self.health = DESTROYER_LIFE
+        self.y = -30
+        self.health = 0
 
 
 class Cruiser(Destroyer):
@@ -194,7 +198,7 @@ class Cruiser(Destroyer):
     def __init__(self):
         super().__init__()
         self.health = CRUISER_HEALTH
-        self.hitbox = (0, 0, 24, 16) # x, y, w, h
+        self.hitbox = (0, 0, 16, 24) # x, y, w, h
         self.lazerbeam_list = []
     
     def __str__(self):
@@ -222,6 +226,9 @@ class Cruiser(Destroyer):
 
             for lazerbeam in self.lazerbeam_list:
                 lazerbeam.draw()
+    
+        if DEBUGGER.get_var('show hitbox'):
+            pyxel.rectb(self.x+self.hitbox[0], self.y+self.hitbox[1], self.hitbox[2], self.hitbox[3], 8)
 
     def fire(self):
         """fait tirer un rayon lazer au croiseur"""
@@ -249,13 +256,6 @@ class Cruiser(Destroyer):
         self.y = random.randint(-15, -5)
         self.health = CRUISER_HEALTH
         self.active = True
-
-    def disactive(self):
-        """détruit le croiseur"""
-        self.active = False
-        self.dead = False
-        self.y = -10
-        self.health = CRUISER_HEALTH
 
 
 class Spidrone(Drone):

@@ -8,6 +8,7 @@ CLASSES
 
 import pyxel
 from sounds import Musicien
+from constants import DEBUGGER
 
 class Projectile:
     '''
@@ -49,6 +50,9 @@ class Projectile:
             pyxel.rect(self.x, self.y, 2, 8, 10)
         elif self.ptype == 'destlazer':
             pyxel.rect(self.x, self.y, 1, 4, 11)
+        
+        if DEBUGGER.get_var('show hitbox'):
+            pyxel.rectb(self.x+self.hitbox[0], self.y+self.hitbox[1], self.hitbox[2], self.hitbox[3], 8)
 
 class Explosion:
     '''
@@ -91,7 +95,9 @@ class Explosion:
         pyxel.circb(self.x, self.y, self.radius, self.color)
         if self.etype == 'damage':
             pyxel.circ(self.x, self.y, max(0, self.radius-3), self.color-1)
-
+        
+        if DEBUGGER.get_var('show hitbox'):
+            pyxel.rectb(self.x+self.hitbox[0], self.y+self.hitbox[1], self.hitbox[2], self.hitbox[3], 8)
 
 class Lazerbeam:
     '''

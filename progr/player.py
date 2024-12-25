@@ -43,7 +43,7 @@ class Player:
         self.lazerbeam_waiter = 0
         self.booster_waiter = 0
         self.anim_reacteurs = [0, True]
-        self.hitbox = (-8, -8, 10, 10) # x, y, w, h
+        self.hitbox = (0, 0, 16, 16) # x, y, w, h
         self.play_the_sound = Musicien()
 
     def update(self, game_speed, vies, score):
@@ -60,21 +60,21 @@ class Player:
     def draw(self, score):
         """dessine l'astronef"""
 
-        pyxel.rect(self.x-3, self.y+6, 2, 3+self.anim_reacteurs[0], 6)
-        pyxel.rect(self.x+1, self.y+6, 2, 3+self.anim_reacteurs[0], 6)
+        pyxel.rect(self.x+5, self.y+14, 2, 3+self.anim_reacteurs[0], 6)
+        pyxel.rect(self.x+9, self.y+14, 2, 3+self.anim_reacteurs[0], 6)
 
         if score < SCORE_DESTROYER-25:
-            pyxel.blt(self.x-8, self.y-8, 0, 0, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
+            pyxel.blt(self.x, self.y, 0, 0, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
         elif score >= SCORE_DESTROYER-25:
-            pyxel.blt(self.x-8, self.y-8, 0, 16, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
+            pyxel.blt(self.x, self.y, 0, 16, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
         if score >= SCORE_ROCKET:
-            pyxel.blt(self.x-8, self.y-8, 0, 32, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
+            pyxel.blt(self.x, self.y, 0, 32, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
         if score >= SCORE_DOUBLE_TIR:
-            pyxel.blt(self.x-8, self.y-8, 0, 48, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
+            pyxel.blt(self.x, self.y, 0, 48, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
         if score >= SCORE_DOUBLE_ROCKET:
-            pyxel.blt(self.x-8, self.y-8, 0, 64, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
+            pyxel.blt(self.x, self.y, 0, 64, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
         if score >= SCORE_LAZERBEAM:
-            pyxel.blt(self.x-8, self.y-8, 0, 80, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
+            pyxel.blt(self.x, self.y, 0, 80, 56, 16, 16, colkey=0, scale=SPACESHIP_SCALE)
         #     color_chargeur = 8
         #     if self.lazerbeam_waiter != 0:
         #         color_chargeur = 1
@@ -91,7 +91,7 @@ class Player:
             pass
         
         if score >= SCORE_DESTROYER-25:
-            self.shield.draw(self.x, self.y)
+            self.shield.draw(self.x+8, self.y+8)
         if score >= SCORE_SPIDRONE-25:
             self.detector.draw()
 
@@ -101,6 +101,9 @@ class Player:
             rocket.draw()
         for lazerbeam in self.lazerbeam_list:
             lazerbeam.draw()
+            
+        if DEBUGGER.get_var('show hitbox'):
+            pyxel.rectb(self.x+self.hitbox[0], self.y+self.hitbox[1], self.hitbox[2], self.hitbox[3], 8)
 
     def _move(self, game_speed):
         """
@@ -131,26 +134,26 @@ class Player:
         if pyxel.btnr(pyxel.KEY_SPACE):
             self.speed += TARGETING_SLOWING # vitesse remise à la normale quand le pilote relache.
             self.play_the_sound.lazer()
-            self.lazer_liste.append(Projectile('lazer', self.x, self.y-10, 4, -1))
+            self.lazer_liste.append(Projectile('lazer', self.x+8, self.y, 4, -1))
             if score >= SCORE_DOUBLE_TIR:
-                self.lazer_liste.append(Projectile('lazer', self.x+2, self.y-10, 4, -1))
+                self.lazer_liste.append(Projectile('lazer', self.x+10, self.y, 4, -1))
             if score >= SCORE_TRIPLE_TIR:
-                self.lazer_liste.append(Projectile('lazer', self.x+4, self.y-10, 4, -1))
+                self.lazer_liste.append(Projectile('lazer', self.x+12, self.y, 4, -1))
         # rockets
         if pyxel.btnr(pyxel.KEY_R):
             if not self.rocket_waiter1 == 0 and self.rocket_waiter2 == 0 and score >= SCORE_DOUBLE_ROCKET:
                 self.play_the_sound.rocket()
-                self.rockets_list.append(Projectile('rocket', self.x-8, self.y-8, 3, -1))
+                self.rockets_list.append(Projectile('rocket', self.x, self.y+4, 3, -1))
                 self.rocket_waiter2 = ROCKET_RELOAD
             if self.rocket_waiter1 == 0 and score >= SCORE_ROCKET:
                 self.play_the_sound.rocket()
-                self.rockets_list.append(Projectile('rocket', self.x-4, self.y-12, 3, -1))
+                self.rockets_list.append(Projectile('rocket', self.x+3, self.y+2, 3, -1))
                 self.rocket_waiter1 = ROCKET_RELOAD
         # lazerbram
         if pyxel.btnr(pyxel.KEY_F) and score >= SCORE_LAZERBEAM:
             if self.lazerbeam_waiter == 0:
                 self.play_the_sound.lazebeam_load()
-                self.lazerbeam_list.append(Lazerbeam('lazer', self.x+7, self.y-5, -1))
+                self.lazerbeam_list.append(Lazerbeam('lazer', self.x+14, self.y+3, -1))
                 self.lazerbeam_waiter = LAZERBEAM_RELOAD
 
     def update_projectiles(self, game_speed):

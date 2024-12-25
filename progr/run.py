@@ -364,7 +364,7 @@ class Niveau:
             if type2 in (Destroyer, Cruiser):
                 entity2.health -= 1
                 self.play_the_sound.ennemi_hit()
-                self.explosions.append(Explosion(x2, y2))
+                self.explosions.append(Explosion(x2+(hb2_w//2), y2+(hb2_h//2)))
                 if entity2.health <= 0:
                     entity2.dead = True
             # lazer ou rocket
@@ -376,10 +376,10 @@ class Niveau:
             # joueur
             if type1 == Player:
                 if entity1.shield.active:
-                    self.explosions.append(Explosion(x1, y1, color=13))
+                    self.explosions.append(Explosion(x1+(hb2_w//2), y1+(hb2_h//2), color=13))
                     entity1.shield.power -= 1
                 else:
-                    self.explosions.append(Explosion(x1, y1, radius=2))
+                    self.explosions.append(Explosion(x1+(hb2_w//2), y1+(hb2_h//2), radius=2))
                     #play_sound(SOUND_PLAYER_HIT)
                     if self.base_life > 0 \
                     or not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level): # invincibliité après la mort de la base ou la victoire
@@ -484,14 +484,14 @@ class Niveau:
         detector_dur = self.player.detector.duration
 
         if vies != PLAYER_LIFE:
-            pyxel.rect(x+16, y-1, 2*vies, 1, 14) # barre de vie
+            pyxel.rect(x+24, y+7, 2*vies, 1, 14) # barre de vie
         if rocket_waiter1 != 0:
-            pyxel.text(x-14, y-2, str(rocket_waiter1), 10) # compteur de chargement du tube 1
+            pyxel.text(x-4, y+6, str(rocket_waiter1), 10) # compteur de chargement du tube 1
         if rocket_waiter2 != 0:
-            pyxel.text(x-14, y+2, str(rocket_waiter2), 10) # compteur de chargement du tube 2
+            pyxel.text(x-4, y+10, str(rocket_waiter2), 10) # compteur de chargement du tube 2
         if detector_dur != MAX_DETECTOR_DURATION:
             pyxel.dither(0.5)
-            pyxel.rect(x+16, y+1, detector_dur, 1, 11)
+            pyxel.rect(x+24, y+9, detector_dur, 1, 11)
             pyxel.dither(1)
         pyxel.text(SCREEN_WIDTH//2, SCREEN_HEIGHT-18, 'Engine (ARROW) : Always', 10) #←↑↓→
         pyxel.text(0, SCREEN_HEIGHT-18, 'Canon (SPACE) : Always', 10)
