@@ -7,9 +7,6 @@ Les constantes nécessaires au fonctionnement du jeu
 from debugger import Debugger
 
 DEBUGGER = Debugger()
-DEBUGGER.toggle(True)
-DEBUGGER.set_var('show hitbox', False)
-DEBUGGER.msg(f'Hitbox are displayed on screen.', note='WARN', condition='show hitbox')
 
 # sounds
 
@@ -97,6 +94,8 @@ DESTROYER_SPAWN_RATE = 20
 CRUISER_HEALTH = 27
 CRUISER_FIRE_RATE = 8
 CRUISER_SPAWN_RATE = 15
+
+DREADNOUGHT_LIFE = 100
 
 SHIELD_POWER = 4
 SHIELD_DURATION = 20

@@ -32,7 +32,11 @@ class Debugger:
         if state is None:
             self.active = not self.active
         else:
-            self.active = state
+            self.active = state        
+        if self.active:
+            print(f'{col.Fore.YELLOW + col.Style.BRIGHT}DEBUGGER ON:{col.Style.NORMAL} Debugger is currently active.{col.Style.RESET_ALL}\n')
+        else:
+            print(f'{col.Fore.BLACK + col.Style.BRIGHT}DEBUGGER OFF:{col.Style.NORMAL} Debugger is currently unactive.{col.Style.RESET_ALL}\n')
 
     def set_filename(self, filename):
         """redéfinie le nom du fichier d'où le message est envoyé"""
@@ -58,7 +62,7 @@ class Debugger:
         if condition is None:
             condition = True
         elif not condition in self.vars.keys():
-            print(f'{col.Fore.RED + col.Style.BRIGHT}DEBUGGER EXCEPTION:{col.Style.NORMAL} the condition {condition} is not define. Set on True.{col.Style.RESET_ALL}')
+            print(f'{col.Fore.RED + col.Style.BRIGHT}DEBUGGER EXCEPTION:{col.Style.NORMAL} the condition {condition} is not define. Set on True.{col.Style.RESET_ALL}\n')
             condition = True
         else:
             condition = self.vars[condition]
@@ -87,23 +91,22 @@ class Debugger:
             print(f'{color + note}: {col.Style.RESET_ALL}Debugger {file}:')
             if not location is None:
                 print(f'{col.Style.DIM}{location}{col.Style.NORMAL}')
-            print(color + col.Style.NORMAL + '----------------------------------')
+            print(color + col.Style.NORMAL + '-- ', end='')
             print(f'{col.Fore.WHITE}{text}')
             # for var in args:
             #     print(f'{var[0]} :', var[1])
-            print('\n')
 
     def line(self, text):
         """Print a non formated line in the shell."""
-        print(text)
+        print('DEBUGGER: ' + text)
 
     def set_var(self, name, value):
         """Define a variable for debug."""
         self.vars[name] = value
 
     def get_var(self, name):
-        """Get a variable for debug."""
-        return self.vars[name]
+        """Get a variable value for debug."""
+        return self.vars[name] and self.is_active()
     
     def del_var(self, name):
         """Delete a variable registered for debug."""
