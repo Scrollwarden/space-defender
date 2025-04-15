@@ -46,6 +46,9 @@ class Player:
         self.hitbox = (0, 0, 16, 16) # x, y, w, h
         self.play_the_sound = Musicien()
 
+    def __str__(self):
+        return f"PLAYER spaceship ({self.x}, {self.y})"
+    
     def update(self, game_speed, vies, score):
         """met à jour tous les paramètres du vaisseau"""
         self._move(game_speed)
@@ -103,7 +106,8 @@ class Player:
             lazerbeam.draw()
             
         if DEBUGGER.get_var('show hitbox'):
-            pyxel.rectb(self.x+self.hitbox[0], self.y+self.hitbox[1], self.hitbox[2], self.hitbox[3], 8)
+            hbx, hby, hbw, hbh = self.hitbox
+            pyxel.rectb(self.x+hbx, self.y+hby, hbw, hbh, 8)
 
     def _move(self, game_speed):
         """

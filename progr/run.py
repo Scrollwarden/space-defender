@@ -119,15 +119,15 @@ class Game:
         """
         if pyxel.btn(pyxel.KEY_SHIFT):
             if pyxel.btnr(pyxel.KEY_K): # kill self
-                DEBUGGER.msg('ON SELF KILL\nPlayer should be destroyed.', note='CHEAT')
+                DEBUGGER.msg('ON SELF KILL : Player should be destroyed.', note='CHEAT')
                 self.current_screen.vies = 0
                 self.current_screen._check_collision(self.current_screen.player, self.current_screen.player) # collision avec lui-même pour conserver l'animation
             if pyxel.btnr(pyxel.KEY_L): # level up
                 if pyxel.btn(pyxel.KEY_C):
-                    DEBUGGER.msg('ON CHECKPOINT UP\nPlayer should gain 650 points and reach next Level Checkpoint.', note='CHEAT')
+                    DEBUGGER.msg('ON CHECKPOINT UP : Player should gain 650 points and reach next Level Checkpoint.', note='CHEAT')
                     self.score['score'] += 650
                 else:
-                    DEBUGGER.msg('ON LEVEL UP\nPlayer sould gain 100 points.', note='CHEAT')
+                    DEBUGGER.msg('ON LEVEL UP : Player sould gain 100 points.', note='CHEAT')
                     self.score['score'] += 100
 
     def draw(self):
@@ -153,6 +153,7 @@ class Niveau:
         self.drones = []
         self.destroyer = Destroyer()
         self.cruiser = Cruiser()
+        self.dreadnought = Dreadnought()
         self.background = StarField()
         self.explosions = []
         self.table_points = score
@@ -170,7 +171,7 @@ class Niveau:
         self.player.update(self.game_speed, self.vies, self.table_points['score'])
         self._update_explosions()
         self._update_drones()
-        self._update_destroyer_cruiser()
+        self._update_class_II_and_III()
         self._check_all_collisions()
         self._remove_deads()
 
@@ -180,6 +181,8 @@ class Niveau:
         # pyxel.rect(0, 0, GAME_SCREEN_WIDTH_START, SCREEN_HEIGHT, 0)
         # pyxel.rect(0-2, 0, 2, SCREEN_HEIGHT, 13) # side bar. must be improved before release
         self.background.draw()
+
+        # entities
         if self.vies > 0:
             self.player.draw(self.table_points['score'])
         for drone in self.drones:
@@ -188,9 +191,19 @@ class Niveau:
         self.destroyer.draw_projectiles()
         self.cruiser.draw()
         self.cruiser.draw_projectiles()
+        self.dreadnought.draw()
+        self.dreadnought.draw_projectiles()
         for explosion in self.explosions:
             explosion.draw()
 
+        # barre de vie dreadnought (boss)
+        if self.dreadnought.active:
+            start_point = (SCREEN_WIDTH-DREADNOUGHT_LIFE*1)//2
+            pyxel.text(start_point-80, 21, 'DREADNOUGHT', 3)
+            pyxel.rect(start_point-1, 21, DREADNOUGHT_LIFE*1+2, 4, 1)
+            pyxel.rect(start_point, 22, self.dreadnought.health*1, 2, 3)
+
+        # UI
         if self.vies > 0 and self.base_life > 0 \
         and not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
             DEBUGGER.set_var('game over', False)
@@ -216,6 +229,7 @@ class Niveau:
         """
         # creation
         if self.base_life > 0 \
+        and not self.dreadnought.active \
         and not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
             if (pyxel.frame_count % 60 == 0):
                 # point d'apparition d'un groupe
@@ -244,13 +258,14 @@ class Niveau:
                     self.table_points['score'] -= 1
                     self.base_life -= 1
 
-    def _update_destroyer_cruiser(self):
+    def _update_class_II_and_III(self):
         """
         [methode interne de update]
-        Créé et met à jour les destroyers et les croiseurs.
+        Créé et met à jour les drones de classe II et III.
         """
         # creation
         if self.base_life > 0 \
+        and not self.dreadnought.active \
         and not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level) :
             if self.table_points['score'] >= SCORE_DESTROYER and not self.destroyer.active:
                 if (pyxel.frame_count % 60 == 0) and random.randint(0, 100) < DESTROYER_SPAWN_RATE:
@@ -258,11 +273,14 @@ class Niveau:
             if self.table_points['score'] >= SCORE_CRUISER and not self.cruiser.active:
                 if (pyxel.frame_count % 60 == 0) and random.randint(0, 100) < CRUISER_SPAWN_RATE:
                     self.cruiser.create()
-        
+            if self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level) - 100 and not self.dreadnought.active:
+                self.dreadnought.create()
+
         # mise à jour des positions
-        for astronef in (self.destroyer, self.cruiser):
+        for astronef in (self.destroyer, self.cruiser, self.dreadnought):
             astronef.update(self.game_speed, self.table_points['score'])
             astronef.update_projectiles(self.game_speed)
+            # arrivé en bas de l'écran
             if astronef.y > SCREEN_HEIGHT+10 and astronef.active:
                 self.play_the_sound.base_hit()
                 if self.vies > 0 and self.base_life > 0 \
@@ -279,17 +297,22 @@ class Niveau:
         Vérifie les collisions des astronefs entre-eux et avec les projectiles
         """
         player = self.player
-        destroyer = self.destroyer
-        cruiser = self.cruiser
+        class2and3_list = []
+        if self.destroyer.active:
+            class2and3_list.append(self.destroyer)
+        if self.cruiser.active:
+            class2and3_list.append(self.cruiser)
+        if self.dreadnought.active:
+            class2and3_list.append(self.dreadnought)
         lazerbeam_lazers = []
         for lazerbeam in self.player.lazerbeam_list:
             lazerbeam_lazers += lazerbeam.list_lazer
         lazers = self.player.lazer_liste + lazerbeam_lazers
         rockets = self.player.rockets_list
         lazerbeam_destlazer = []
-        for lazerbeam in self.cruiser.lazerbeam_list:
+        for lazerbeam in self.cruiser.lazerbeam_list+self.dreadnought.lazerbeam_list:
             lazerbeam_destlazer += lazerbeam.list_lazer
-        destlazers = self.destroyer.projectiles + lazerbeam_destlazer
+        destlazers = self.dreadnought.projectiles + self.destroyer.projectiles + lazerbeam_destlazer
         explosions = [expl for expl in self.explosions if expl.etype == 'damage']
 
         for drone in self.drones:
@@ -305,27 +328,24 @@ class Niveau:
                 # si une explosion percute un drone
                 self._check_collision(explosion, drone)
 
-        # si un lazer percute un destroyer ou un croiseur
-        for lazer in lazers:
-            self._check_collision(lazer, destroyer)
-            self._check_collision(lazer, cruiser)
-        # si une rocket percute un destroyer ou un croiseur
-        for rocket in rockets:
-            self._check_collision(rocket, destroyer)
-            self._check_collision(rocket, cruiser)
+        for class2or3 in class2and3_list:
+            # si le joueur percute un Classe II ou III
+            self._check_collision(player, class2or3)
+            # si un lazer percute un Classe II ou III
+            for lazer in lazers:
+                self._check_collision(lazer, class2or3)
+            # si une rocket percute un Classe II ou III
+            for rocket in rockets:
+                self._check_collision(rocket, class2or3)
         
         for explosion in explosions:
             # si le joueur percute une explosion
             self._check_collision(player, explosion)
-            # si une explosion percute un destroyer ou un croiseur
-            self._check_collision(explosion, destroyer)
-            self._check_collision(explosion, cruiser)
-        
-        # si le joueur percute un destroyer ou un croiseur
-        self._check_collision(player, destroyer)
-        self._check_collision(player, cruiser)
+            # si une explosion percute un Tier 2 ou 3
+            for class2or3 in class2and3_list:
+                self._check_collision(explosion, class2or3)
 
-        # si le joueur percute un lazer du destroyer
+        # si le joueur percute un lazer de destroyer
         for destlazer in destlazers:
             self._check_collision(player, destlazer)
     
@@ -337,13 +357,13 @@ class Niveau:
         INPUT
             entity1 (Player | Projectile.ptype=lazer | Projectile.ptype=rocket | Explosion.etype=damage) :
         la première entité à vérifier
-            entity2 (Drone | Destroyer | Projectile.ptype=destlazer | Explosion.etype=damage) :
+            entity2 (Drone | Destroyer | Cruiser | Dreadnought | Projectile.ptype=destlazer | Explosion.etype=damage) :
         la seconde entité à vérifier
 
         WARNING : if one of the argument do not contain one of the acceptable classes, the game will crash.
         """
         # si le vaisseau est mort, éviter les collisions fantomes sur l'écran de game over
-        if type(entity1) == Player and self.vies <= -2000:
+        if self.vies <= -2000:
             return None
 
         # programme de collisions
@@ -354,19 +374,21 @@ class Niveau:
         hb1_x, hb1_y, hb1_w, hb1_h = entity1.hitbox
         hb2_x, hb2_y, hb2_w, hb2_h = entity2.hitbox
         # hitbox
-        if x1 + hb1_x <= x2 + hb2_w and x1 + hb1_w >= x2 + hb2_x \
-        and y1 + hb1_y <= y2 + hb2_h and y1 + hb1_h >= y2 + hb2_y:
+        if x1 + hb1_x <= x2 + hb2_w and x1 + hb1_w + hb1_x >= x2 + hb2_x \
+        and y1 + hb1_y <= y2 + hb2_h and y1 + hb1_h + hb1_y >= y2 + hb2_y:
             # drone
             if type2 == Drone:
                 entity2.dead = True
                 self.explosions.append(Explosion(x2+(hb2_w//2), y2+(hb2_h//2)))
-            # destroyer ou croiseur
-            if type2 in (Destroyer, Cruiser):
+            # Classes II et III (ont des pv)
+            if type2 in (Destroyer, Cruiser, Dreadnought):
                 entity2.health -= 1
                 self.play_the_sound.ennemi_hit()
-                self.explosions.append(Explosion(x2+(hb2_w//2), y2+(hb2_h//2)))
+                self.explosions.append(Explosion(x1+(hb1_w//2), y1+(hb1_h//2)))
                 if entity2.health <= 0:
                     entity2.dead = True
+                    expl_radius = 15 if type2 == Dreadnought else 2
+                    self.explosions.append(Explosion(x2+(hb2_w//2), y2+(hb2_h//2), radius=expl_radius, etype='damage'))
             # lazer ou rocket
             if type1 == Projectile and type2 != Explosion:
                 if entity1.ptype in ('lazer', 'rocket', 'destlazer'):
@@ -382,7 +404,7 @@ class Niveau:
                     self.explosions.append(Explosion(x1+(hb2_w//2), y1+(hb2_h//2), radius=2))
                     #play_sound(SOUND_PLAYER_HIT)
                     if self.base_life > 0 \
-                    or not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level): # invincibliité après la mort de la base ou la victoire
+                    or not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level): # invincibilité après la mort de la base ou la victoire
                         self.vies -= 1
                         DEBUGGER.set_var('player dead', self.vies <= -2000)
                         DEBUGGER.msg(f'Player died at {pyxel.frame_count}. Game is Over.', note='INFO', condition='player dead')
@@ -422,6 +444,13 @@ class Niveau:
                 self.table_points['score'] += CRUISER_HEALTH
             self.play_the_sound.ennemi_hit()
             self.cruiser.disactive()
+        # dreadnought
+        if self.dreadnought.dead:
+            if self.vies > 0 and self.base_life > 0 \
+            and not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
+                self.table_points['score'] += DREADNOUGHT_LIFE
+            self.play_the_sound.ennemi_hit() # <-- Meilleur son de victoire "destruction du bigboy" à trouver
+            self.dreadnought.disactive()
         # rockets
         for rocket in self.player.rockets_list:
             if rocket.target_hit:

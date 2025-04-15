@@ -16,7 +16,7 @@ from constants import SCREEN_HEIGHT, SCREEN_WIDTH, DEBUGGER
 if __name__ == "__main__":
     # debug side launching
     DEBUGGER.toggle(True)
-    DEBUGGER.set_var('show hitbox', False)
+    DEBUGGER.set_var('show hitbox', True)
     DEBUGGER.msg(f'Hitbox are displayed on screen.', note='WARN', condition='show hitbox')
 
     # game launching

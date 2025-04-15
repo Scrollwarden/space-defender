@@ -38,6 +38,9 @@ class Projectile:
             self.hitbox = (0, 0, 2, 8)
         self.target_hit = False
 
+    def __str__(self):
+        return f"{self.ptype}"
+
     def update(self, game_speed):
         self.y += self.speed * self.direction * game_speed
         # if self.ptype == 'rocket':
@@ -52,7 +55,8 @@ class Projectile:
             pyxel.rect(self.x, self.y, 1, 4, 11)
         
         if DEBUGGER.get_var('show hitbox'):
-            pyxel.rectb(self.x+self.hitbox[0], self.y+self.hitbox[1], self.hitbox[2], self.hitbox[3], 8)
+            hbx, hby, hbw, hbh = self.hitbox
+            pyxel.rectb(self.x+hbx, self.y+hby, hbw, hbh, 8)
 
 class Explosion:
     '''
@@ -80,6 +84,9 @@ class Explosion:
         self.etype = etype
         self.hitbox = (-radius, -radius, 2*radius, 2*radius) # x, x+w, y, y+h
 
+    def __str__(self):
+        return f"Explosion ({self.etype})"
+
     def update(self):
         """met à jour l'explosion"""
         if (pyxel.frame_count % 2 == 0) and self.step < 5:
@@ -97,7 +104,8 @@ class Explosion:
             pyxel.circ(self.x, self.y, max(0, self.radius-3), self.color-1)
         
         if DEBUGGER.get_var('show hitbox'):
-            pyxel.rectb(self.x+self.hitbox[0], self.y+self.hitbox[1], self.hitbox[2], self.hitbox[3], 8)
+            hbx, hby, hbw, hbh = self.hitbox
+            pyxel.rectb(self.x+hbx, self.y+hby, hbw, hbh, 8)
 
 class Lazerbeam:
     '''
@@ -112,6 +120,9 @@ class Lazerbeam:
         self.state = 12 # temps de chargement
         self.list_lazer = []
         self.play_the_sound = Musicien()
+
+    def __str__(self):
+        return f"Lazerbeam of type {self.ltype}"
 
     def update_loading(self):
         """mise à jour chargement du rayon lazer"""
