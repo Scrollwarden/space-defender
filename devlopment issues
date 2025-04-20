@@ -11,3 +11,9 @@
 
 
 > Issue : Immuable star
+
+> Code change : need to remove game_speed and use frame_count instead
+
+> messages : set a time_created attribut then count at frame_count+C < time_created
+
+> stuff infos : in top-left corner below the score (like detector is)

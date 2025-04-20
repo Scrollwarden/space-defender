@@ -14,13 +14,16 @@ class Debugger:
 
     METHODS
     - is_active()
-    - toggle()
-    - set_filename(filename)
+    - toggle(state)
     - msg(text)
+    - set_var(var_name, value)
+    - get_var(var_name)
+    - del_var(var_name)
+    - clear_vars()
+    - print_vars(specific_var_name)
     '''
-    def __init__(self, filename=None, active=False):
+    def __init__(self, active=False):
         self.active = active
-        self.filename = filename
         self.vars = {}
 
     def is_active(self):
@@ -37,10 +40,6 @@ class Debugger:
             print(f'{col.Fore.YELLOW + col.Style.BRIGHT}DEBUGGER ON:{col.Style.NORMAL} Debugger is currently active.{col.Style.RESET_ALL}\n')
         else:
             print(f'{col.Fore.BLACK + col.Style.BRIGHT}DEBUGGER OFF:{col.Style.NORMAL} Debugger is currently unactive.{col.Style.RESET_ALL}\n')
-
-    def set_filename(self, filename):
-        """redéfinie le nom du fichier d'où le message est envoyé"""
-        self.filename = filename
     
     def msg(self, text, note='MSG', location=None, condition=None):
         """
@@ -68,10 +67,6 @@ class Debugger:
             condition = self.vars[condition]
 
         if self.active and condition:
-            if self.filename is None:
-                file = ''
-            else:
-                file = f'(in {col.Style.DIM}{self.filename}{col.Style.RESET_ALL})'
             
             color = col.Fore.WHITE
             if note == 'MSG':
@@ -88,13 +83,14 @@ class Debugger:
                 color = col.Fore.CYAN
             color = color + col.Style.BRIGHT
 
-            print(f'{color + note}: {col.Style.RESET_ALL}Debugger {file}:')
-            if not location is None:
-                print(f'{col.Style.DIM}{location}{col.Style.NORMAL}')
+            if location is None:
+                location = 'general'
+            else:
+                location = 'in ' + location
+
+            print(f'{color + note}: {col.Style.RESET_ALL} {col.Style.DIM}{location}{col.Style.NORMAL}:')
             print(color + col.Style.NORMAL + '-- ', end='')
             print(f'{col.Fore.WHITE}{text}')
-            # for var in args:
-            #     print(f'{var[0]} :', var[1])
 
     def line(self, text):
         """Print a non formated line in the shell."""
@@ -115,3 +111,17 @@ class Debugger:
     def clear_vars(self):
         """clear all variable registered in the debugger"""
         self.vars = {}
+
+    def print_vars(self, specific_vars=None):
+        """
+        Affiche toutes les variables et leurs valeurs dans le terminal
+        
+        Il est possible de spécifier une liste des variables attendues.
+        """
+        var_list = self.vars if specific_vars is None else specific_vars
+        print(f'{col.Style.BRIGHT} All vars in debugger :{col.Style.RESET_ALL}')
+        if var_list == []:
+            print(f'{col.Fore.RED} No variable set in debugger.{col.Style.RESET_ALL}')
+        else:
+            for var in var_list:
+                print(f'{var[0]} : {col.Style.DIM}{var[1]}{col.Style.RESET_ALL}')

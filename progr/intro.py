@@ -13,8 +13,6 @@ from background import StarField
 from enemies import Drone
 import random
 
-DEBUGGER.set_filename('intro.py')
-
 
 class LaunchingScreen:
     '''

@@ -17,8 +17,6 @@ from projectile import Projectile, Lazerbeam
 from constants import *
 import random
 
-DEBUGGER.set_filename('enemies.py')
-
 class Drone:
     '''
     Entity : le Drone est l'ennemi de base.
@@ -293,9 +291,8 @@ class Dreadnought:
 
         self.canon_coordinates = ( # NEED TO BE SCALED
             (7, 26), (10, 24), (13, 22), (16, 20), # left wing
-            (22, 16), (24, 10), (32, 10), (30, 16), # head
             (49, 26), (46, 24), (43, 22), (40, 20) # right wing
-            )
+            ) # head canons are added at level 4
         self.lazerbeam_coordinates = ((8, 16), (20, 14), (48, 16), (36, 14))
 
     def __str__(self):
@@ -313,7 +310,7 @@ class Dreadnought:
     def update(self, game_speed, score):
         """met à jour la position du dreadnought et gère ses patterns"""
         if self.active:
-            if self.y < 32 :
+            if self.y < 32 and self.in_animation:
                 self.anim_advance(game_speed)
             else:
                 if 0 < self.pattern_state <= 30*2:
@@ -325,6 +322,8 @@ class Dreadnought:
     def anim_advance(self, game_speed):
         """fait avancer le dreadnought"""
         self.y += 0.6 * game_speed
+        if self.health < DREADNOUGHT_LIFE-5:
+            self.health += 5
         if self.y >= 32:
             self.in_animation = False
 
@@ -336,14 +335,24 @@ class Dreadnought:
         1. Bouge d'un côté à l'autre, en tirant périodiquement (1.1 et 1.2)
         2. Déclenche une pluie de rayons lazers après avoir choisi une position (2.1, 2.2, 2.3, 2.4 et 2.5)
         3. Avance en tirant avec les canons normaux
+        4. Part d'un côté à l'autre ene reculant (4.1 et 4.2)
+        5. Reste fixe pendant un temps
+        6. Reste fixe un instant puis change de position (6.1, 6.2, 6.3, 6.4 et 6.5)
+        7. Recule vers le haut puis reste fixe en régénérant (augmente avec les niveaux)
+
         Niveau 2
-        4. Part d'un côté à l'autre en reculant et en faisant feu de toutes ses armes (4.1 et 4.2)
+        4. Fait feu avec tous ses canons durant le mouvement
         Niveau 3
-        5. Active un bouclier et change de pattern
+        5. Active un bouclier et reste fixe
         Niveau 4
-        6. Libère une escouade de drones devant lui (6.1, 6.2, 6.3, 6.4 et 6.5)
+        3. Fait feu de ses canons lazers en plus du reste
+        Niveau 5
+        6. Libère une escouade de drones devant lui avant de changer de position
+        Niveau 6
+        2. Active un bouclier pendant qu'il choisi sa position et avant de tirer
+
         """
-        DEBUGGER.msg('choosing a new pattern', 'MSG')
+        DEBUGGER.msg('choosing a new pattern', 'MSG', condition='debug_boss')
         # choose pattern
         current_pattern = self.pattern_phase[0]
         if current_pattern == 1:
@@ -369,7 +378,7 @@ class Dreadnought:
 
         # set pattern to start
         self.pattern_state = 1
-        DEBUGGER.msg(f'pattern {self.pattern_phase} should start')
+        DEBUGGER.msg(f'pattern {self.pattern_phase} should start', condition='debug_boss')
 
     def execute_current_pattern(self):
         """Éxecute le pattern choisi."""
@@ -385,11 +394,11 @@ class Dreadnought:
 
     def execute_pattern1(self):
         """Bouge d'un côté à l'autre, en tirant périodiquement (1.1 et 1.2)"""
-        if self.pattern_phase[1] == 1 and self.x > 10:
+        if self.pattern_phase[1] == 1 and self.x > 0:
             self.x -= 1
-        elif self.pattern_phase[1] == 2 and self.x < SCREEN_WIDTH-100:
+        elif self.pattern_phase[1] == 2 and self.x < SCREEN_WIDTH-10:
             self.x += 1
-        if random.randint(0, 10) >= 9:
+        if random.randint(0, 10) >= 9 and self.y < SCREEN_HEIGHT:
             self.y += 1
         if random.randint(0, 100) >= 96:
             self._pattern_fire()
@@ -399,16 +408,21 @@ class Dreadnought:
         possible_moves = ((-2, 0), (2, 0), (0, 1), (0, -1), (1, 0), (-1, 0))
         move_x, move_y = possible_moves[self.pattern_phase[1]-1]
         if self.pattern_state < 30*2-15:
-            self.x += move_x
-            self.y += move_y
-        elif self.pattern_state < 30*2-1:
-            pass # stop and then fire twice
-        else:
+            if (move_x > 0 and self.x < SCREEN_WIDTH) \
+            or (move_x < 0 and self.x > 0):
+                self.x += move_x
+            if (move_y > 0 and self.y < SCREEN_HEIGHT) \
+            or (move_y < 0 and self.y > 0):
+                self.y += move_y
+        elif self.pattern_state in (30*2-4, 30*2-1):
             self._pattern_fire()
+        else:
+            pass # stop before fire
 
     def execute_pattern3(self):
         """Avance en tirant avec les canons normaux"""
-        self.y += 1
+        if self.y < SCREEN_HEIGHT:
+            self.y += 1
         if self.pattern_state % 4 == 0:
             self._pattern_fire()
 
@@ -417,7 +431,8 @@ class Dreadnought:
         Part d'un côté à l'autre en reculant et en faisant feu de toutes ses armes (4.1 et 4.2)
         Avant nivau 2, revient juste en arrière.
         """
-        self.y -= 2
+        if self.y > 0:
+            self.y -= 2
 
     def update_projectiles(self, game_speed):
         """
@@ -441,7 +456,7 @@ class Dreadnought:
         """affiche le destroyer à l'écran"""
         if self.active:
             pyxel.rect(self.x, self.y+0-self.anim_reacteurs[0], 2, self.anim_reacteurs[0], 10)
-            pyxel.blt(self.x-16, self.y-16, 0, 0, 24, 16*4, 16*2, colkey=0, scale=SPACESHIP_SCALE*2) # scale seem centered
+            pyxel.blt(self.x+24, self.y, 0, 0, 24, 16*4, 16*2, colkey=0, scale=SPACESHIP_SCALE*2) # scale seem centered
         if DEBUGGER.get_var('show hitbox'):
             hbx, hby, hbw, hbh = self.hitbox
             pyxel.rectb(self.x+hbx, self.y+hby, hbw, hbh, 8)
@@ -459,20 +474,21 @@ class Dreadnought:
             for x, y in self.canon_coordinates:
                 if random.randint(0, 10) >= 9:
                     self.play_the_sound.lazer()
-                    self.projectiles.append(Projectile('destlazer', self.x+x*2, self.y+y*2, 3, 1))
+                    self.projectiles.append(Projectile('destlazer', self.x+x*2, self.y+y, 3, 1))
         elif self.pattern_phase[0] == 2:
             x, y = self.lazerbeam_coordinates[random.randint(0, 3)]
             self.play_the_sound.lazebeam_load()
-            self.lazerbeam_list.append(Lazerbeam('destlazer', self.x+x*2, self.y+y*2, 1))
+            self.lazerbeam_list.append(Lazerbeam('destlazer', self.x+x*2, self.y+y, 1))
         elif self.pattern_phase[0] == 3:
             for lazer_x, lazer_y in self.canon_coordinates:
                 self.play_the_sound.lazer()
-                self.projectiles.append(Projectile('destlazer', self.x+lazer_x*2, self.y+lazer_y*2, 3, 1))
+                self.projectiles.append(Projectile('destlazer', self.x+lazer_x*2, self.y+lazer_y, 3, 1))
             lazerbeam_x, lazerbeam_y = self.lazerbeam_coordinates[random.randint(0, 3)]
             self.play_the_sound.lazebeam_load()
-            self.lazerbeam_list.append(Lazerbeam('destlazer', self.x+lazerbeam_x*2, self.y+lazerbeam_y*2, 1))
+            # if score >= niveau 3
+            self.lazerbeam_list.append(Lazerbeam('destlazer', self.x+lazerbeam_x*2, self.y+lazerbeam_y, 1))
         else:
-            DEBUGGER.msg('No fire for current pattern', 'WARN')
+            DEBUGGER.msg('No fire for current Dreadnought pattern', 'WARN', condition='debug_boss')
 
     def update_animation(self):
         """Animation des réacteurs"""

@@ -16,7 +16,6 @@ from projectile import Explosion, Projectile
 from background import StarField
 from constants import *
 
-DEBUGGER.set_filename('run.py')
 
 class Game:
     '''
@@ -163,6 +162,7 @@ class Niveau:
         # load content
         pyxel.load(SPACESHIP_TEXTURES)
 
+        DEBUGGER.msg(f'Hitbox are displayed on screen.', note='WARN', condition='show hitbox')
         DEBUGGER.msg(f'LEVEL CREATION\nLevel {self.current_level} is starting.', note='INFO')
 
     def update(self):
