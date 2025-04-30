@@ -46,17 +46,16 @@ class Debugger:
         Envoie dans le terminal le message donné
 
         INPUT
-            text (str): le contenu du message.
-            note (str): une note d'importance au début du message
-            - MSG  : ce message est une information de débugage
-            - INFO : ce message est une information sur le déroulé du programme.
-            - WARN : ce message mérite une attention particulière
-            - ERR  : ce message n'aurait pas dû être activé
-            - DONE : ce message indique que le code a fonctionné
-            - CHEAT : ce message indique qu'un cheat a été activé
-            location (str) : where the msg is called. Line in Method from Class.
-            args (tuple[str, any]): des variables a tester. A remplir sous la forme
-            ('nom de la variable', variable)
+        - text (str): le contenu du message.
+        - note (str): une note d'importance au début du message
+           - MSG  : ce message est une information de débugage
+           - INFO : ce message est une information sur le déroulé du programme.
+           - WARN : ce message mérite une attention particulière
+           - ERR  : ce message n'aurait pas dû être activé
+           - DONE : ce message indique que le code a fonctionné
+           - CHEAT : ce message indique qu'un cheat a été activé
+        - location (str) : where the msg is called. Line in Method from Class.
+        - condition (tuple[str]): la condition d'apparition du message (qui doit avoir été définie à l'avance). True par défaut.
         """
         if condition is None:
             condition = True

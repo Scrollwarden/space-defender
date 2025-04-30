@@ -199,7 +199,7 @@ class Niveau:
         # barre de vie dreadnought (boss)
         if self.dreadnought.active:
             start_point = (SCREEN_WIDTH-DREADNOUGHT_LIFE*1)//2
-            pyxel.text(start_point-80, 21, 'DREADNOUGHT', 3)
+            pyxel.text(SCREEN_WIDTH//2 -20, 14, 'DREADNOUGHT', 3)
             pyxel.rect(start_point-1, 21, DREADNOUGHT_LIFE*1+2, 4, 1)
             pyxel.rect(start_point, 22, self.dreadnought.health*1, 2, 3)
 
@@ -448,7 +448,7 @@ class Niveau:
         if self.dreadnought.dead:
             if self.vies > 0 and self.base_life > 0 \
             and not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
-                self.table_points['score'] += DREADNOUGHT_LIFE
+                self.table_points['score'] += 100
             self.play_the_sound.ennemi_hit() # <-- Meilleur son de victoire "destruction du bigboy" à trouver
             self.dreadnought.disactive()
         # rockets
@@ -492,9 +492,6 @@ class Niveau:
         if SCORE_LAZERBEAM <= score <= SCORE_LAZERBEAM+4:
            message = 'Lazerbeam unlocked !'
         color = 10
-        if (SCORE_VICTOIRE*self.current_level)-70 <= score <= (SCORE_VICTOIRE*self.current_level)-50: # work only for level 1 
-            message = '/!\\ DREADNOUGHT INCOMMING /!\\'
-            color = 14
         
         pyxel.text((SCREEN_WIDTH//2)-len(message)*2, 50, message, color)
 

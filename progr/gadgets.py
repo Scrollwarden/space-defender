@@ -54,7 +54,7 @@ class Shield:
 
     def draw(self, x, y):
         """dessine le bouclier en (x, y)"""
-        if self.active: # faut le redessiner, il est moche là
+        if self.active:
             pyxel.rect(x+16, y-5, 2*self.power, 1, 12)
             pyxel.dither(0.5)
             pyxel.rect(x+16, y-3, self.duration, 1, 13)
