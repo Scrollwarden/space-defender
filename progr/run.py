@@ -11,7 +11,7 @@ import random
 from sounds import Musicien
 from intro import MainScreen, LaunchingScreen
 from player import Player
-from enemies import Drone, Destroyer, Cruiser, Frigat, Spidrone, Dreadnought
+from enemies import Drone, Destroyer, Cruiser, Frigat, SpyDrone, Dreadnought
 from projectile import Explosion, Projectile
 from background import StarField
 from constants import *
@@ -51,7 +51,7 @@ class Game:
         if type(self.current_screen) == MainScreen:
             self._update_main_screen()
             if pyxel.btnr(pyxel.KEY_Q):
-                DEBUGGER.msg('ON QUIT\nGame was stopped on user commande Q.', note='INFO')
+                DEBUGGER.msg('ON KEY Q : Game was stopped.', note='INFO')
                 pyxel.quit()
         if type(self.current_screen) == Niveau:
             # cheats
@@ -63,7 +63,7 @@ class Game:
             self._key_continue()
             #   quit app
             if pyxel.btnr(pyxel.KEY_M):
-                DEBUGGER.msg('ON KEY M\nLevel was stopped. Go back to Menu.', note='INFO')
+                DEBUGGER.msg('ON KEY M : Level was stopped. Go back to Menu.', note='INFO')
                 self.current_screen = MainScreen()
 
     def _update_launching(self):
@@ -84,7 +84,7 @@ class Game:
                     self.score[key] = 0
                 self.current_screen = Niveau(self.score, self.nb_levels) # le niveau actuel est le niveau 1
             if pyxel.btnr(pyxel.KEY_Q):
-                DEBUGGER.msg('ON QUIT\nGame was stopped on user commande Q.', note='INFO')
+                DEBUGGER.msg('ON KEY Q : Game was stopped.', note='INFO')
                 pyxel.quit()
     
     def _key_reset(self):
@@ -118,15 +118,15 @@ class Game:
         """
         if pyxel.btn(pyxel.KEY_SHIFT):
             if pyxel.btnr(pyxel.KEY_K): # kill self
-                DEBUGGER.msg('ON SELF KILL : Player should be destroyed.', note='CHEAT')
+                DEBUGGER.msg('ON KEY K : (self kill) Player should be destroyed.', note='CHEAT')
                 self.current_screen.vies = 0
                 self.current_screen._check_collision(self.current_screen.player, self.current_screen.player) # collision avec lui-même pour conserver l'animation
             if pyxel.btnr(pyxel.KEY_L): # level up
                 if pyxel.btn(pyxel.KEY_C):
-                    DEBUGGER.msg('ON CHECKPOINT UP : Player should gain 650 points and reach next Level Checkpoint.', note='CHEAT')
+                    DEBUGGER.msg('ON KEY L+C : (checkpoint up) Player should gain 650 points.', note='CHEAT')
                     self.score['score'] += 650
                 else:
-                    DEBUGGER.msg('ON LEVEL UP : Player sould gain 100 points.', note='CHEAT')
+                    DEBUGGER.msg('ON KEY L : Player sould gain 100 points.', note='CHEAT')
                     self.score['score'] += 100
 
     def draw(self):
@@ -163,7 +163,7 @@ class Niveau:
         pyxel.load(SPACESHIP_TEXTURES)
 
         DEBUGGER.msg(f'Hitbox are displayed on screen.', note='WARN', condition='show hitbox')
-        DEBUGGER.msg(f'LEVEL CREATION\nLevel {self.current_level} is starting.', note='INFO')
+        DEBUGGER.msg(f'LEVEL CREATION : Level {self.current_level} is starting.', note='INFO')
 
     def update(self):
         """Met à jour tout le jeu"""
@@ -382,13 +382,17 @@ class Niveau:
                 self.explosions.append(Explosion(x2+(hb2_w//2), y2+(hb2_h//2)))
             # Classes II et III (ont des pv)
             if type2 in (Destroyer, Cruiser, Dreadnought):
-                entity2.health -= 1
-                self.play_the_sound.ennemi_hit()
-                self.explosions.append(Explosion(x1+(hb1_w//2), y1+(hb1_h//2)))
-                if entity2.health <= 0:
-                    entity2.dead = True
-                    expl_radius = 15 if type2 == Dreadnought else 2
-                    self.explosions.append(Explosion(x2+(hb2_w//2), y2+(hb2_h//2), radius=expl_radius, etype='damage'))
+                if type2 == Dreadnought and entity2.shield[0]:
+                    entity2.shield[1] -= 1
+                    self.explosions.append(Explosion(x2+(hb2_w//2), y2+(hb2_h//2), color=13))
+                else:
+                    entity2.health -= 1
+                    self.play_the_sound.ennemi_hit()
+                    self.explosions.append(Explosion(x1+(hb1_w//2), y1+(hb1_h//2)))
+                    if entity2.health <= 0:
+                        entity2.dead = True
+                        expl_radius = 15 if type2 == Dreadnought else 2
+                        self.explosions.append(Explosion(x2+(hb2_w//2), y2+(hb2_h//2), radius=expl_radius, etype='damage'))
             # lazer ou rocket
             if type1 == Projectile and type2 != Explosion:
                 if entity1.ptype in ('lazer', 'rocket', 'destlazer'):
@@ -407,7 +411,7 @@ class Niveau:
                     or not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level): # invincibilité après la mort de la base ou la victoire
                         self.vies -= 1
                         DEBUGGER.set_var('player dead', self.vies <= -2000)
-                        DEBUGGER.msg(f'Player died at {pyxel.frame_count}. Game is Over.', note='INFO', condition='player dead')
+                        DEBUGGER.msg(f'Player died. Game is Over.', note='INFO', condition='player dead')
                         if self.vies <= 0 and self.vies >= -2000: # belle explosion pour la mort
                             self.explosions.append(Explosion(x1, y1, radius=2, etype='damage'))
                     
@@ -419,36 +423,34 @@ class Niveau:
         Supprime les rockets (il faut ajouter les explosions ici)
         Les autres projectiles sont retirés dans les classes Player et Destroyer
         """
+        has_won = self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level)
+        is_alive = self.vies > 0 and self.base_life > 0
         # drones
         for drone in self.drones:
             if drone.dead:
                 self.drones.remove(drone)
                 self.play_the_sound.ennemi_hit()
-                if self.vies > 0 and self.base_life > 0 \
-                and not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
+                if is_alive and not has_won:
                     self.table_points['classe I tues'] += 1
                     self.table_points['score'] += 1
         # destroyers
         if self.destroyer.dead:
-            if self.vies > 0 and self.base_life > 0 \
-            and not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
+            if is_alive and not has_won:
                 self.table_points['classe II tues'] += 1
                 self.table_points['score'] += DESTROYER_LIFE
             self.play_the_sound.ennemi_hit()
             self.destroyer.disactive()
         # croiseur
         if self.cruiser.dead:
-            if self.vies > 0 and self.base_life > 0 \
-            and not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
+            if is_alive and not has_won:
                 self.table_points['classe II tues'] += 1
                 self.table_points['score'] += CRUISER_HEALTH
             self.play_the_sound.ennemi_hit()
             self.cruiser.disactive()
         # dreadnought
         if self.dreadnought.dead:
-            if self.vies > 0 and self.base_life > 0 \
-            and not self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
-                self.table_points['score'] += 100
+            if is_alive and not has_won:
+                self.table_points['score'] += DREADNOUGHT_LIFE
             self.play_the_sound.ennemi_hit() # <-- Meilleur son de victoire "destruction du bigboy" à trouver
             self.dreadnought.disactive()
         # rockets

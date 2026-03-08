@@ -17,7 +17,7 @@ if __name__ == "__main__":
     # debug side launching
     DEBUGGER.toggle(True)
     DEBUGGER.set_var('show hitbox', False)
-    DEBUGGER.set_var('debug_boss', True)
+    DEBUGGER.set_var('debug_boss', False)
 
     # game launching
     pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="Space Defender", fps=30)

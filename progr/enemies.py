@@ -261,7 +261,7 @@ class Cruiser(Destroyer):
         self.active = True
 
 
-class Spidrone(Drone):
+class SpyDrone(Drone):
     pass
 
 
@@ -284,7 +284,7 @@ class Dreadnought:
         self.lazerbeam_list = []
         self.pattern_state = 0
         self.pattern_phase = [0, 0]
-        self.shield = [False, 10]
+        self.shield = [False, DREADNOUGH_SHIELD_POWER]
         self.in_animation = False
         self.hitbox = (0, 0, 56*2, 16*2) # x, y, w, h
         self.anim_reacteurs = [0, True]
@@ -314,7 +314,7 @@ class Dreadnought:
             if self.y < 32 and self.in_animation:
                 self.anim_advance(game_speed)
             else:
-                if 0 < self.pattern_state <= 30*2:
+                if 0 < self.pattern_state <= DREADNOUGH_PATTERN_DURATION:
                     self.execute_current_pattern(score)
                 else:
                     self.choose_new_pattern()
@@ -383,20 +383,20 @@ class Dreadnought:
     def execute_current_pattern(self, score):
         """Éxecute le pattern choisi."""
         self.pattern_state += 1
-        if self.pattern_phase[0] == 1:
-            self.execute_pattern1(score)
-        elif self.pattern_phase[0] == 2:
-            self.execute_pattern2(score)
-        elif self.pattern_phase[0] == 3:
-            self.execute_pattern3(score)
-        elif self.pattern_phase[0] == 4:
-            self.execute_pattern4(score)
-        elif self.pattern_phase[0] == 5:
-            self.execute_pattern5(score)
-        elif self.pattern_phase[0] == 6:
-            self.execute_pattern6(score)
-        else:
-            self.execute_pattern7(score)
+        if self.pattern_phase[0] == 1:      # == Strive and shoot
+            self.execute_pattern1(score)    #   Mouvement horizontal et tirs périodiques
+        elif self.pattern_phase[0] == 2:    # == Lazer rain
+            self.execute_pattern2(score)    #   Reste fixe et pluie de lasers
+        elif self.pattern_phase[0] == 3:    # == All-fire charge
+            self.execute_pattern3(score)    #   Avance en tirant avec tous les canons
+        elif self.pattern_phase[0] == 4:    # == Reposition
+            self.execute_pattern4(score)    #   Recule sur un mouvement horizontal
+        elif self.pattern_phase[0] == 5:    # == Shield stance
+            self.execute_pattern5(score)    #   Active un bouclier et reste fixe
+        elif self.pattern_phase[0] == 6:    # == Cavalery call
+            self.execute_pattern6(score)    #   Libère des drones puis se déplace
+        else:                               # == Withdrawal
+            self.execute_pattern7(score)    #   Replie et se régénère
 
     def execute_pattern1(self, score):
         """Bouge d'un côté à l'autre, en tirant périodiquement (1.1 et 1.2)"""
@@ -441,7 +441,7 @@ class Dreadnought:
 
     def execute_pattern4(self, score):
         """
-        Part d'un côté à l'autre ene reculant (4.1 et 4.2)
+        Part d'un côté à l'autre en reculant (4.1 et 4.2)
         Niveau 2
         Fait feu avec tous ses canons durant le mouvement
         """
@@ -460,20 +460,19 @@ class Dreadnought:
         Niveau 3
         Active un bouclier et reste fixe
         """
-        shield_active, shield_energy = self.shield
-
-        if not shield_active:
-            shield_active = True
+        if not self.shield[0] and self.pattern_state == 2:
+            self.shield[0] = True
             DEBUGGER.msg('Shield was activated', condition='debug_boss')
-
-        DEBUGGER.set_var('boss_shield_has_energy', (shield_energy <= 0 and DEBUGGER.get_var('debug_boss')))
-        DEBUGGER.set_var('boss_shield_pattern_ended', (self.pattern_state >= 120 and DEBUGGER.get_var('debug_boss')))
-        DEBUGGER.msg('Shield energy is over', condition='boss_shield_has_energy')
-        DEBUGGER.msg('Shield duration is over', condition='boss_shield_pattern_ended')
-        if shield_energy <= 0 or self.pattern_state >= 120:
-            shield_active = False
-            shield_energy = 10
-        self.shield = [shield_active, shield_energy]
+        
+        if self.shield[1] <= 0:
+            self.shield[0] = False
+            if self.shield[1] == 0:
+                DEBUGGER.msg('Shield energy is over', condition='debug_boss')
+                self.shield[1] -= 1
+        if self.pattern_state >= DREADNOUGH_PATTERN_DURATION - 1:
+            self.shield[0] = False
+            self.shield[1] = 10
+            DEBUGGER.msg('Shield duration is over', condition='debug_boss')
 
     def execute_pattern6(self, score):
         """
@@ -500,7 +499,9 @@ class Dreadnought:
         if self.y > 10:
             self.y -= 2
         if 10 >= self.y >= 0:
-            self.health += 2 * (score -100)//SCORE_VICTOIRE
+            self.health += 2 * (score -100) // SCORE_VICTOIRE
+            if self.health > DREADNOUGHT_LIFE:
+                self.health = DREADNOUGHT_LIFE
             
     def update_projectiles(self, game_speed):
         """
@@ -524,15 +525,15 @@ class Dreadnought:
         """affiche le destroyer à l'écran"""
         x, y = self.x, self.y
         if self.active:
-            # pyxel.rect(x, y+0-self.anim_reacteurs[0], 2, self.anim_reacteurs[0], 10)
+            pyxel.rect(x+50, y-10-self.anim_reacteurs[0], 5, self.anim_reacteurs[0]+3, 10)
             pyxel.blt(x+24, y, 0, 0, 24, 16*4, 16*2, colkey=0, scale=SPACESHIP_SCALE*2) # scale seem centered
-            # if self.shield[0]:
-            #     pyxel.dither(0.3)
-            #     pyxel.circb(x, y, 22, 12)
-            #     pyxel.circb(x, y, 20, 12)
-            #     pyxel.dither(0.6)
-            #     pyxel.circb(x, y, 24, 12)
-            #     pyxel.dither(1)
+            if self.shield[0]:
+                pyxel.dither(0.3)
+                pyxel.circb(x+55, y+5, 24, 12)
+                pyxel.circb(x+55, y+5, 18, 12)
+                pyxel.dither(0.6)
+                pyxel.circb(x+55, y+5, 26, 12)
+                pyxel.dither(1)
         if DEBUGGER.get_var('show hitbox'):
             hbx, hby, hbw, hbh = self.hitbox
             pyxel.rectb(x+hbx, y+hby, hbw, hbh, 8)

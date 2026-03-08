@@ -4,6 +4,7 @@ pour éviter d'avoir à enlever les prints.
 '''
 
 import colorama as col
+import pyxel
 
 class Debugger:
     '''
@@ -83,11 +84,12 @@ class Debugger:
             color = color + col.Style.BRIGHT
 
             if location is None:
-                location = 'general'
+                location = ''
             else:
-                location = 'in ' + location
+                location = '(in ' + location + ')'
 
-            print(f'{color + note}: {col.Style.RESET_ALL} {col.Style.DIM}{location}{col.Style.NORMAL}:')
+            time = pyxel.frame_count # changer les imports et cette ligne selon le moteur et la lib utilisée
+            print(f'{color + note}: {col.Style.RESET_ALL} at {time} {col.Style.DIM}{location}{col.Style.NORMAL}:')
             print(color + col.Style.NORMAL + '-- ', end='')
             print(f'{col.Fore.WHITE}{text}')
 
