@@ -8,7 +8,7 @@ CLASSES
 
 import pyxel
 from sounds import Musicien
-from constants import DEBUGGER
+from constants import DEBUGGER, LAZERBEAM_LOAD
 
 class Projectile:
     '''
@@ -117,7 +117,7 @@ class Lazerbeam:
         self.y = y
         self.ltype = ltype
         self.direction = direction
-        self.state = 12 # temps de chargement
+        self.state = LAZERBEAM_LOAD
         self.list_lazer = []
         self.play_the_sound = Musicien()
 
