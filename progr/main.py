@@ -15,7 +15,8 @@ from constants import SCREEN_HEIGHT, SCREEN_WIDTH, DEBUGGER
 
 if __name__ == "__main__":
     # debug side launching
-    DEBUGGER.toggle(True)
+    DEBUGGER.toggle(False)
+    DEBUGGER.set_var('skip_intro', True)
     DEBUGGER.set_var('show hitbox', False)
     DEBUGGER.set_var('debug_boss', False)
 

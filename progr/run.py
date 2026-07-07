@@ -159,6 +159,7 @@ class Niveau:
         self.game_speed = GAME_SPEED
         self.vies = PLAYER_LIFE
         self.base_life = BASE_LIFE
+        self.ui_message = ['', 0]
         # load content
         pyxel.load(SPACESHIP_TEXTURES)
 
@@ -471,31 +472,44 @@ class Niveau:
         """
         score = self.table_points['score']
 
-        pyxel.text(2, 6, 'score : ' + str(self.table_points['score']), 7)
-        pyxel.rect(2, 2, 8*self.base_life, 2, 11) # barre de vie de la base
-        pyxel.text(8*self.base_life + 4, 1, str(self.base_life), 11)
+        pyxel.text(2, 10, 'score : ' + str(self.table_points['score']), 7)
+        pyxel.rect(4 + len("Vie base")*4, 2, 7*self.base_life, 2, 11) # barre de vie de la base
+        pyxel.text(4 + len("Vie base")*4 + 7*self.base_life + 4, 1, str(self.base_life), 11)
+        pyxel.text(2, 1, "Vie base", 11)
 
-        # répétitif. Doit tenir en boucle for
-        message = ''
-        if SCORE_DESTROYER-25 <= score <= SCORE_DESTROYER-25+4:
-            message = 'Shield unlocked !'
-        if SCORE_SPIDRONE-25 <= score <= SCORE_SPIDRONE-25+4:
-            message = 'Detector unlocked !'
-        if SCORE_ROCKET <= score <= SCORE_ROCKET+4:
-            message = 'Rockets unlocked !'
-        if SCORE_DOUBLE_TIR <= score <= SCORE_DOUBLE_TIR+4:
-            message = 'Double-shoot unlocked !'
-        if SCORE_DOUBLE_ROCKET <= score <= SCORE_DOUBLE_ROCKET+4:
-            message = '2x rockets unlocked !'
-        if SCORE_TRIPLE_TIR <= score <= SCORE_TRIPLE_TIR+4:
-            message = 'Triple-shoot unlocked !'
-        if SCORE_BOOSTER <= score <= SCORE_BOOSTER+4:
-            message = 'Booster unlocked !'
-        if SCORE_LAZERBEAM <= score <= SCORE_LAZERBEAM+4:
-           message = 'Lazerbeam unlocked !'
-        color = 10
+        if self.ui_message[1] == 0 and self.ui_message[0] == '':
+            if score == SCORE_DESTROYER-25:
+                self.ui_message[0] = 'Shield unlocked !'
+                self.ui_message[1] == MESSAGE_UI_DURATION
+            elif score == SCORE_SPIDRONE-25:
+                self.ui_message[0] = 'Detector unlocked !'
+                self.ui_message[1] == MESSAGE_UI_DURATION
+            elif score == SCORE_ROCKET:
+                self.ui_message[0] = 'Rockets unlocked !'
+                self.ui_message[1] == MESSAGE_UI_DURATION
+            elif score == SCORE_DOUBLE_TIR:
+                self.ui_message[0] = 'Double-shoot unlocked !'
+                self.ui_message[1] == MESSAGE_UI_DURATION
+            elif score == SCORE_DOUBLE_ROCKET:
+                self.ui_message[0] = '2x rockets unlocked !'
+                self.ui_message[1] == MESSAGE_UI_DURATION
+            elif score == SCORE_TRIPLE_TIR:
+                self.ui_message[0] = 'Triple-shoot unlocked !'
+                self.ui_message[1] == MESSAGE_UI_DURATION
+            elif score == SCORE_BOOSTER:
+                self.ui_message[0] = 'Booster unlocked !'
+                self.ui_message[1] == MESSAGE_UI_DURATION
+            elif score == SCORE_LAZERBEAM:
+                self.ui_message[0] = 'Lazerbeam unlocked !'
+                self.ui_message[1] == MESSAGE_UI_DURATION
+        elif (pyxel.frame_count % 30 == 0):
+            self.ui_message[1] -= 1
+            if self.ui_message[1] <= 0:
+                self.ui_message[0] = ''
+                self.ui_message[1] == 0
+            # TODO : currently message may overlap and the second one will not be printed in this case
         
-        pyxel.text((SCREEN_WIDTH//2)-len(message)*2, 50, message, color)
+        pyxel.text((SCREEN_WIDTH//2)-len(self.ui_message[0])*2, 50, self.ui_message[0], 10)
 
     def _draw_player_ui(self):
         """
@@ -517,12 +531,13 @@ class Niveau:
             pyxel.text(x-4, y+6, str(rocket_waiter1), 10) # compteur de chargement du tube 1
         if rocket_waiter2 != 0:
             pyxel.text(x-4, y+10, str(rocket_waiter2), 10) # compteur de chargement du tube 2
-        if detector_dur != MAX_DETECTOR_DURATION:
+        if detector_dur != MAX_DETECTOR_DURATION: # TODO : move into detector class like shield
             pyxel.dither(0.5)
             pyxel.rect(x+24, y+9, detector_dur, 1, 11)
             pyxel.dither(1)
-        pyxel.text(SCREEN_WIDTH//2, SCREEN_HEIGHT-18, 'Engine (ARROW) : Always', 10) #←↑↓→
-        pyxel.text(0, SCREEN_HEIGHT-18, 'Canon (SPACE) : Always', 10)
+
+        pyxel.text(0, UI_POSITION_TOP, f'Vaisseau (ARROW) : {vies / PLAYER_LIFE * 100 :.0f}% (grade {vies})', 10) #←↑↓→
+        pyxel.text(0, UI_POSITION_TOP+10, 'Canons (SPACE) : READY', 10)
         if score >= SCORE_ROCKET:
             state1, state2 = 'READY', ''
             if rocket_waiter1 != 0:
@@ -531,16 +546,23 @@ class Niveau:
                 state2 = ' | READY'
             if rocket_waiter2 != 0:
                 state2 = ' | ' + str(rocket_waiter2)
-            pyxel.text(0, SCREEN_HEIGHT-12, f'Rocket (R) : {state1}{state2}', 10)
+            pyxel.text(0, UI_POSITION_TOP+30, f'Roquette (R) : {state1}{state2}', 10 if (rocket_waiter1 == 0 or (rocket_waiter2 == 0 and score >= SCORE_DOUBLE_ROCKET)) else 13)
         if score >= SCORE_LAZERBEAM:
             stateL = 'READY'
             if lazerbeam_waiter != 0:
                 stateL = lazerbeam_waiter
-            pyxel.text(0, SCREEN_HEIGHT-6, f'Lazerbeam (F) : {stateL}', 10)
-        
+            pyxel.text(0, UI_POSITION_TOP+40, f'Rayon lazer (F) : {stateL}', 10 if lazerbeam_waiter == 0 else 13)
+        # TODO : create an UI bar next to the screen
         if score >= SCORE_DESTROYER-25:
-            self.player.shield.draw_shield_ui()
+            state_shield = 'READY'
+            if self.player.shield.waiter > 0:
+                state_shield = self.player.shield.waiter
+            shield_active = self.player.shield.power > 0 and self.player.shield.waiter > 0
+            pyxel.text(0, UI_POSITION_TOP+20, f'Bouclier (B) : {state_shield}', 12 if shield_active else (10 if state_shield == 'READY' else 13))
+            if shield_active:
+                pyxel.text(52, UI_POSITION_TOP+20, f'( {self.player.shield.power} )', 12)
         if score >= SCORE_SPIDRONE-25:
+            # TODO : detector
             self.player.detector.draw_detector_ui()
     
     def draw_game_over(self):
@@ -550,23 +572,25 @@ class Niveau:
         """
         mid = (GAME_SCREEN_WIDTH//2)
         # tableau de score
-        pyxel.text(mid-16, 12, f'NIVEAU {self.current_level}', 7)
+        pyxel.text(mid-16, 36, f'NIVEAU {self.current_level}', 7)
         tab_score = 48
-        pyxel.text(mid-48, tab_score + 12, 'score : ' + str(self.table_points['score']), 7)
-        pyxel.text(mid-48, tab_score + 19, 'Classe I tues : ' + str(self.table_points['classe I tues']), 7)
-        pyxel.text(mid-48, tab_score + 26, 'Classe II tues : ' + str(self.table_points['classe II tues']), 7)
-        pyxel.text(mid-48, tab_score + 40, 'Ennemis passes : ' + str(self.table_points['ennemis passes']) + ' (' + str(self.table_points['degats totaux']) + ')', 7)
+        pyxel.text(mid-48, tab_score + 12, f"score : {self.table_points['score']}", 7)
+        kc1 = self.table_points['classe I tues']
+        pyxel.text(mid-48, tab_score + 19, f"Classe I tues : {kc1}     (+{kc1})", 7)
+        kc2 = self.table_points['classe II tues']
+        pyxel.text(mid-48, tab_score + 26, f"Classe II tues : {kc2}    (+{self.table_points['score'] + self.table_points['degats totaux'] - kc1})", 7)
+        pyxel.text(mid-48, tab_score + 40, f"Ennemis passes : {self.table_points['ennemis passes']}    (-{self.table_points['degats totaux']})", 7)
         # game over
         pyxel.text(mid-9*2, SCREEN_HEIGHT//2, 'GAME OVER', 7)
-        if self.vies <= 0:
+        if (not self.base_life <= 0) and self.vies <= 0:
             pyxel.text(mid-30*2, (SCREEN_HEIGHT//2)+10, 'Votre vaisseau a ete detruit.', 9)
         if self.base_life <= 0:
             pyxel.text(mid-26*2, (SCREEN_HEIGHT//2)+10, 'La base a ete dementelee.', 8)
         if self.table_points['score'] >= (SCORE_VICTOIRE*self.current_level):
             pyxel.text(mid-40*2, (SCREEN_HEIGHT//2)+10, 'Vous avez survecu a cette attaque !', 3)
             pyxel.text(mid-18*2, (SCREEN_HEIGHT//2)+30, '> CONTINUE (ENTER)',9)
-            pyxel.text(mid-18, 24, 'COMPLETED', 10)
+            pyxel.text(mid-18, 44, 'COMPLETED', 10)
         else:
-            pyxel.text(mid-12, 24, 'FAILED', 10)
+            pyxel.text(mid-12, 44, 'FAILED', 10)
         pyxel.text(mid-21*2, (SCREEN_HEIGHT//2)+40, '> RESTART (BACKSPACE)', 3)
         pyxel.text(mid-18*2, (SCREEN_HEIGHT//2)+60, '> QUIT TO MENU (M)', 8)

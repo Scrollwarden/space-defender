@@ -65,12 +65,6 @@ class Shield:
             pyxel.dither(0.6)
             pyxel.circb(x, y, 12, 12)
             pyxel.dither(1)
-    
-    def draw_shield_ui(self):
-        state = 'READY'
-        if self.waiter > 0:
-           state = self.waiter
-        pyxel.text(SCREEN_WIDTH//2, SCREEN_HEIGHT-12, f'Bouclier (B) : {state}', 10)
         
 
 class Detector:

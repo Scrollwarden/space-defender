@@ -29,7 +29,7 @@ class LaunchingScreen:
     '''
     def __init__(self):
         self.duration = 80
-        self.progress = 0
+        self.progress = 80 if DEBUGGER.get_var('skip_intro') else 0
         self.step = 0
         self.play_the_sound = Musicien()
         # load content
