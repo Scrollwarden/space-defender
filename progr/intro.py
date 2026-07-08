@@ -62,12 +62,12 @@ class LaunchingScreen:
         [méthode interne de draw]
         dessine le mot SPACE à l'écran
         """
-        pyxel.text(5+self.step, 76+5*0, "  ||   |||      ||     ||||   |||||", COLOR_TITLE_SPACE)
+        pyxel.text(5+self.step, 76+5*0, " |||   |||      ||     ||||   |||||", COLOR_TITLE_SPACE)
         pyxel.text(5+self.step, 76+5*1, " |     |  |    |  |    |      |    ", COLOR_TITLE_SPACE)
         pyxel.text(5+self.step, 76+5*2, "  |    |||    ||||||   |      |||  ", COLOR_TITLE_SPACE)
         pyxel.text(5+self.step, 77+5*3, "   |   |      |    |   |      |    ", COLOR_TITLE_SPACE)
         pyxel.text(5+self.step, 77+5*4, "  |    |      |    |   |      |    ", COLOR_TITLE_SPACE)
-        pyxel.text(5+self.step, 77+5*5, "||     |      |    |   ||||   |||| ", COLOR_TITLE_SPACE)
+        pyxel.text(5+self.step, 77+5*5, "|||    |      |    |   ||||   |||| ", COLOR_TITLE_SPACE)
 
     def _draw_defender(self):
         """

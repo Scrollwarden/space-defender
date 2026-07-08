@@ -135,15 +135,17 @@ class Player:
         # lazer
         if pyxel.btnp(pyxel.KEY_SPACE):
             self.speed -= TARGETING_SLOWING # vitesse réduite quand le pilote vise.
+            self.play_the_sound.lazer()
+            self.lazer_liste.append(Projectile('lazer', self.x+8, self.y, 4, -1)) # Un tir de précision au début
         if pyxel.btnr(pyxel.KEY_SPACE):
             self.speed += TARGETING_SLOWING # vitesse remise à la normale quand le pilote relache.
         if pyxel.btn(pyxel.KEY_SPACE) and pyxel.frame_count % FIRE_RATE == 0:
             self.play_the_sound.lazer()
             self.lazer_liste.append(Projectile('lazer', self.x+8, self.y, 4, -1))
-        if score >= SCORE_DOUBLE_TIR and pyxel.btn(pyxel.KEY_SPACE) and pyxel.frame_count % FIRE_RATE == 3:
+        if score >= SCORE_DOUBLE_TIR and pyxel.btn(pyxel.KEY_SPACE) and pyxel.frame_count % FIRE_RATE == 4:
             self.play_the_sound.lazer()
             self.lazer_liste.append(Projectile('lazer', self.x+10, self.y, 4, -1))
-        if score >= SCORE_TRIPLE_TIR and pyxel.btn(pyxel.KEY_SPACE) and pyxel.frame_count % FIRE_RATE == 5:
+        if score >= SCORE_TRIPLE_TIR and pyxel.btn(pyxel.KEY_SPACE) and pyxel.frame_count % FIRE_RATE == 2:
             self.play_the_sound.lazer()
             self.lazer_liste.append(Projectile('lazer', self.x+12, self.y, 4, -1))
         # rockets

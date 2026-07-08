@@ -210,7 +210,7 @@ class Niveau:
             DEBUGGER.set_var('game over', False)
             self._draw_player_ui()
             self._draw_score()
-            pyxel.text(SCREEN_WIDTH-25*2, 12, 'Quit game (M)', 8)
+            pyxel.text(SCREEN_WIDTH-23*4, SCREEN_HEIGHT-10, 'QUIT TO MAIN MENU (M)', 8)
         else:
             DEBUGGER.set_var('game over', True)
             self.draw_game_over() # may move to Game class
@@ -560,7 +560,7 @@ class Niveau:
             shield_active = self.player.shield.power > 0 and self.player.shield.waiter > 0
             pyxel.text(0, UI_POSITION_TOP+20, f'Bouclier (B) : {state_shield}', 12 if shield_active else (10 if state_shield == 'READY' else 13))
             if shield_active:
-                pyxel.text(52, UI_POSITION_TOP+20, f'( {self.player.shield.power} )', 12)
+                pyxel.text(18*4, UI_POSITION_TOP+20, f'({self.player.shield.power})', 12)
         if score >= SCORE_SPIDRONE-25:
             # TODO : detector
             self.player.detector.draw_detector_ui()
