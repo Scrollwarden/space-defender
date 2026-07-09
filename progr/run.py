@@ -502,7 +502,7 @@ class Niveau:
             elif score == SCORE_LAZERBEAM:
                 self.ui_message[0] = 'Lazerbeam unlocked !'
                 self.ui_message[1] == MESSAGE_UI_DURATION
-        elif (pyxel.frame_count % 30 == 0):
+        elif (pyxel.frame_count % 60 == 0):
             self.ui_message[1] -= 1
             if self.ui_message[1] <= 0:
                 self.ui_message[0] = ''
