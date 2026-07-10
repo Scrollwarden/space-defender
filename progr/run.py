@@ -479,35 +479,34 @@ class Niveau:
 
         if self.ui_message[1] == 0 and self.ui_message[0] == '':
             if score == SCORE_DESTROYER-25:
-                self.ui_message[0] = 'Shield unlocked !'
-                self.ui_message[1] == MESSAGE_UI_DURATION
+                self.ui_message[0] = 'Shield [B] unlocked !' # E
+                self.ui_message[1] = MESSAGE_UI_DURATION
             elif score == SCORE_SPIDRONE-25:
-                self.ui_message[0] = 'Detector unlocked !'
-                self.ui_message[1] == MESSAGE_UI_DURATION
+                self.ui_message[0] = 'Detector [D] unlocked !' # R
+                self.ui_message[1] = MESSAGE_UI_DURATION
             elif score == SCORE_ROCKET:
-                self.ui_message[0] = 'Rockets unlocked !'
-                self.ui_message[1] == MESSAGE_UI_DURATION
+                self.ui_message[0] = 'Rockets [R] unlocked !' # C
+                self.ui_message[1] = MESSAGE_UI_DURATION
             elif score == SCORE_DOUBLE_TIR:
                 self.ui_message[0] = 'Double-shoot unlocked !'
-                self.ui_message[1] == MESSAGE_UI_DURATION
+                self.ui_message[1] = MESSAGE_UI_DURATION
             elif score == SCORE_DOUBLE_ROCKET:
                 self.ui_message[0] = '2x rockets unlocked !'
-                self.ui_message[1] == MESSAGE_UI_DURATION
+                self.ui_message[1] = MESSAGE_UI_DURATION
             elif score == SCORE_TRIPLE_TIR:
                 self.ui_message[0] = 'Triple-shoot unlocked !'
-                self.ui_message[1] == MESSAGE_UI_DURATION
+                self.ui_message[1] = MESSAGE_UI_DURATION
             elif score == SCORE_BOOSTER:
-                self.ui_message[0] = 'Booster unlocked !'
-                self.ui_message[1] == MESSAGE_UI_DURATION
+                self.ui_message[0] = 'Booster [SHIFT] unlocked !' # SHIFT
+                self.ui_message[1] = MESSAGE_UI_DURATION
             elif score == SCORE_LAZERBEAM:
-                self.ui_message[0] = 'Lazerbeam unlocked !'
-                self.ui_message[1] == MESSAGE_UI_DURATION
-        elif (pyxel.frame_count % 60 == 0):
+                self.ui_message[0] = 'Lazerbeam [F] unlocked !' # V
+                self.ui_message[1] = MESSAGE_UI_DURATION
+        elif (pyxel.frame_count % 30 == 0):
             self.ui_message[1] -= 1
             if self.ui_message[1] <= 0:
                 self.ui_message[0] = ''
-                self.ui_message[1] == 0
-            # TODO : currently message may overlap and the second one will not be printed in this case
+                self.ui_message[1] = 0
         
         pyxel.text((SCREEN_WIDTH//2)-len(self.ui_message[0])*2, 50, self.ui_message[0], 10)
 
@@ -576,7 +575,7 @@ class Niveau:
         tab_score = 48
         pyxel.text(mid-48, tab_score + 12, f"score : {self.table_points['score']}", 7)
         kc1 = self.table_points['classe I tues']
-        pyxel.text(mid-48, tab_score + 19, f"Classe I tues : {kc1}     (+{kc1})", 7)
+        pyxel.text(mid-48, tab_score + 19, f"Classe I tues : {kc1}    (+{kc1})", 7)
         kc2 = self.table_points['classe II tues']
         pyxel.text(mid-48, tab_score + 26, f"Classe II tues : {kc2}    (+{self.table_points['score'] + self.table_points['degats totaux'] - kc1})", 7)
         pyxel.text(mid-48, tab_score + 40, f"Ennemis passes : {self.table_points['ennemis passes']}    (-{self.table_points['degats totaux']})", 7)
